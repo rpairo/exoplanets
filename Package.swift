@@ -21,8 +21,12 @@ let package = Package(
             name: "Data",
             dependencies: ["Domain"]),
         
+        .target(
+            name: "UseCase",
+            dependencies: ["Domain", "Data"]),
+        
         .executableTarget(
             name: "ExoplanetAnalyzer",
-            dependencies: ["Data"]),
+            dependencies: ["UseCase"]),
     ]
 )
