@@ -25,8 +25,12 @@ let package = Package(
             name: "UseCase",
             dependencies: ["Domain", "Data"]),
         
+        .target(
+            name: "Composition",
+            dependencies: ["UseCase"]),
+        
         .executableTarget(
             name: "ExoplanetAnalyzer",
-            dependencies: ["UseCase"]),
+            dependencies: ["UseCase", "Composition"]),
     ]
 )

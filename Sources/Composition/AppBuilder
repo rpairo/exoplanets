@@ -1,0 +1,18 @@
+import Foundation
+import UseCase
+import Data
+import Domain
+
+public class AppBuilder {
+    public init() {}
+    
+    public func build() -> ExoplanetAnalyzer {
+        let exoplanetURL = "https://gist.githubusercontent.com/joelbirchler/66cf8045fcbb6515557347c05d789b4a/raw/9a196385b44d4288431eef74896c0512bad3defe/exoplanets"
+        let repository = ExoplanetRepositoryImpl(urlString: exoplanetURL)
+        
+        let useCases = ExoplanetUseCases(repository: repository)
+        
+        let analyzer = ExoplanetAnalyzer(useCases: useCases)
+        return analyzer
+    }
+}
