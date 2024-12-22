@@ -1,0 +1,55 @@
+import Foundation
+import Domain
+
+public class ExoplanetRepositoryImpl: ExoplanetRepository {
+    private let urlString: String
+    
+    public init(urlString: String) {
+        self.urlString = urlString
+    }
+    
+    public func fetchExoplanets(completion: @escaping (Result<[Exoplanet], Error>) -> Void) {
+        guard let url = URL(string: urlString) else {
+            completion(.failure(RepositoryError.invalidURL))
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            // Manejar errores primero
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            // Verificar el código de estado HTTP
+            if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                completion(.failure(RepositoryError.httpError(statusCode: httpResponse.statusCode)))
+                return
+            }
+            
+            // Asegurar que los datos no sean nulos
+            guard let data = data else {
+                completion(.failure(RepositoryError.noData))
+                return
+            }
+            
+            // Decodificar JSON
+            do {
+                let decoder = JSONDecoder()
+                let exoplanets = try decoder.decode([Exoplanet].self, from: data)
+                completion(.success(exoplanets))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+        
+        task.resume()
+    }
+}
+
+// Definir Errores del Repositorio
+public enum RepositoryError: Error, Equatable {
+    case invalidURL
+    case httpError(statusCode: Int)
+    case noData
+}

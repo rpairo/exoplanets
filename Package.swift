@@ -13,14 +13,16 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        // Capa de Dominio
         .target(
             name: "Domain",
             dependencies: []),
         
-        // Capa de Presentación (Ejecutable)
+        .target(
+            name: "Data",
+            dependencies: ["Domain"]),
+        
         .executableTarget(
             name: "ExoplanetAnalyzer",
-            dependencies: ["Domain"]),
+            dependencies: ["Data"]),
     ]
 )
