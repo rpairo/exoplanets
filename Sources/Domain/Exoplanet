@@ -1,0 +1,86 @@
+public struct Exoplanet: Codable {
+    let planetIdentifier: String
+    let typeFlag: Int
+    let planetaryMassJpt: Double?
+    let radiusJpt: Double?
+    let periodDays: Double?
+    let semiMajorAxisAU: Double?
+    let eccentricity: String?
+    let periastronDeg: String?
+    let longitudeDeg: String?
+    let ascendingNodeDeg: String?
+    let inclinationDeg: Double?
+    let surfaceTempK: String?
+    let ageGyr: String?
+    let discoveryMethod: String
+    let discoveryYear: Int?
+    let lastUpdated: String?
+    let rightAscension: String
+    let declination: String
+    let distFromSunParsec: String?
+    let hostStarMassSlrMass: Double?
+    let hostStarRadiusSlrRad: Double?
+    let hostStarMetallicity: Double?
+    let hostStarTempK: Int?
+    let hostStarAgeGyr: String?
+
+    // It requires to map the keys cause Swift does not accept PascalCase.
+    enum CodingKeys: String, CodingKey {
+        case planetIdentifier = "PlanetIdentifier"
+        case typeFlag = "TypeFlag"
+        case planetaryMassJpt = "PlanetaryMassJpt"
+        case radiusJpt = "RadiusJpt"
+        case periodDays = "PeriodDays"
+        case semiMajorAxisAU = "SemiMajorAxisAU"
+        case eccentricity = "Eccentricity"
+        case periastronDeg = "PeriastronDeg"
+        case longitudeDeg = "LongitudeDeg"
+        case ascendingNodeDeg = "AscendingNodeDeg"
+        case inclinationDeg = "InclinationDeg"
+        case surfaceTempK = "SurfaceTempK"
+        case ageGyr = "AgeGyr"
+        case discoveryMethod = "DiscoveryMethod"
+        case discoveryYear = "DiscoveryYear"
+        case lastUpdated = "LastUpdated"
+        case rightAscension = "RightAscension"
+        case declination = "Declination"
+        case distFromSunParsec = "DistFromSunParsec"
+        case hostStarMassSlrMass = "HostStarMassSlrMass"
+        case hostStarRadiusSlrRad = "HostStarRadiusSlrRad"
+        case hostStarMetallicity = "HostStarMetallicity"
+        case hostStarTempK = "HostStarTempK"
+        case hostStarAgeGyr = "HostStarAgeGyr"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        planetIdentifier = try container.decode(String.self, forKey: .planetIdentifier)
+        typeFlag = try container.decode(Int.self, forKey: .typeFlag)
+
+        // Convert string values to Double if possible.
+        // This is required cause 'planetaryMassJpt' and 'radiusJpt' are Double properties but in case they are null they use empty strings as value instead of 0.
+        planetaryMassJpt = Double(container.decodeIfPresent(String.self, forKey: .planetaryMassJpt) ?? "")
+        radiusJpt = Double(container.decodeIfPresent(String.self, forKey: .radiusJpt) ?? "")
+        periodDays = try container.decodeIfPresent(Double.self, forKey: .periodDays)
+        semiMajorAxisAU = try container.decodeIfPresent(Double.self, forKey: .semiMajorAxisAU)
+        eccentricity = try container.decodeIfPresent(String.self, forKey: .eccentricity)
+        periastronDeg = try container.decodeIfPresent(String.self, forKey: .periastronDeg)
+        longitudeDeg = try container.decodeIfPresent(String.self, forKey: .longitudeDeg)
+        ascendingNodeDeg = try container.decodeIfPresent(String.self, forKey: .ascendingNodeDeg)
+        inclinationDeg = try container.decodeIfPresent(Double.self, forKey: .inclinationDeg)
+        surfaceTempK = try container.decodeIfPresent(String.self, forKey: .surfaceTempK)
+        ageGyr = try container.decodeIfPresent(String.self, forKey: .ageGyr)
+        discoveryMethod = try container.decode(String.self, forKey: .discoveryMethod)
+        discoveryYear = try container.decodeIfPresent(Int.self, forKey: .discoveryYear)
+        lastUpdated = try container.decodeIfPresent(String.self, forKey: .lastUpdated)
+        rightAscension = try container.decode(String.self, forKey: .rightAscension)
+        declination = try container.decode(String.self, forKey: .declination)
+        distFromSunParsec = try container.decodeIfPresent(String.self, forKey: .distFromSunParsec)
+        hostStarMassSlrMass = try container.decodeIfPresent(Double.self, forKey: .hostStarMassSlrMass)
+        hostStarRadiusSlrRad = try container.decodeIfPresent(Double.self, forKey: .hostStarRadiusSlrRad)
+        hostStarMetallicity = try container.decodeIfPresent(Double.self, forKey: .hostStarMetallicity)
+        hostStarTempK = try container.decodeIfPresent(Int.self, forKey: .hostStarTempK)
+        hostStarAgeGyr = try container.decodeIfPresent(String.self, forKey: .hostStarAgeGyr)
+    }
+}
