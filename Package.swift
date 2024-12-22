@@ -32,5 +32,9 @@ let package = Package(
         .executableTarget(
             name: "ExoplanetAnalyzer",
             dependencies: ["UseCase", "Composition"]),
+        
+        .testTarget(
+            name: "ExoplanetAnalyzerTests",
+            dependencies: ["ExoplanetAnalyzer"]),
     ]
 )

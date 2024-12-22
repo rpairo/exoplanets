@@ -1,0 +1,280 @@
+import XCTest
+@testable import UseCase
+@testable import Domain
+
+// Mock Repository
+class MockExoplanetRepository: ExoplanetRepository {
+    var shouldReturnError = false
+    var exoplanets: [Exoplanet] = []
+    
+    func fetchExoplanets(completion: @escaping (Result<[Exoplanet], Error>) -> Void) {
+        if shouldReturnError {
+            completion(.failure(MockError.testError))
+        } else {
+            completion(.success(exoplanets))
+        }
+    }
+    
+    enum MockError: Error {
+        case testError
+    }
+}
+
+final class ExoplanetUseCasesTests: XCTestCase {
+    var useCases: ExoplanetUseCases!
+    var mockRepository: MockExoplanetRepository!
+    
+    override func setUp() {
+        super.setUp()
+        mockRepository = MockExoplanetRepository()
+        useCases = ExoplanetUseCases(repository: mockRepository)
+    }
+    
+    override func tearDown() {
+        useCases = nil
+        mockRepository = nil
+        super.tearDown()
+    }
+    
+    func testCountOrphanPlanets_Success() async {
+        mockRepository.exoplanets = [
+            Exoplanet(
+                planetIdentifier: "PlanetA",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 1.0,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2000,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: nil,
+                hostStarRadiusSlrRad: nil,
+                hostStarMetallicity: nil,
+                hostStarTempK: nil,
+                hostStarAgeGyr: nil
+            ),
+            Exoplanet(
+                planetIdentifier: "PlanetB",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 1.0,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2000,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 6000,
+                hostStarAgeGyr: "5"
+            )
+        ]
+        
+        let result = try? await withCheckedThrowingContinuation { continuation in
+            useCases.countOrphanPlanets { result in
+                switch result {
+                case .success(let count):
+                    continuation.resume(returning: count)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        XCTAssertEqual(result, 1, "Debería contar un planeta huérfano")
+    }
+    
+    func testFindPlanetOrbitingHottestStar_Success() async {
+        mockRepository.exoplanets = [
+            Exoplanet(
+                planetIdentifier: "PlanetA",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 1.0,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2000,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 6000,
+                hostStarAgeGyr: "5"
+            ),
+            Exoplanet(
+                planetIdentifier: "PlanetB",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 1.0,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2000,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 7000,
+                hostStarAgeGyr: "5"
+            )
+        ]
+        
+        let result = try? await withCheckedThrowingContinuation { continuation in
+            useCases.findPlanetOrbitingHottestStar { result in
+                switch result {
+                case .success(let planet):
+                    continuation.resume(returning: planet)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        // Entonces
+        XCTAssertEqual(result, "PlanetB", "PlanetB debería orbitar la estrella más caliente")
+    }
+    
+    func testCreateDiscoveryTimelineBySize_Success() async {
+        // Dado
+        mockRepository.exoplanets = [
+            Exoplanet(
+                planetIdentifier: "PlanetA",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 0.5,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2000,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 6000,
+                hostStarAgeGyr: "5"
+            ),
+            Exoplanet(
+                planetIdentifier: "PlanetB",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 1.5,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2001,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 7000,
+                hostStarAgeGyr: "5"
+            ),
+            Exoplanet(
+                planetIdentifier: "PlanetC",
+                typeFlag: 1,
+                planetaryMassJpt: 1.0,
+                radiusJpt: 2.5,
+                periodDays: 100.0,
+                semiMajorAxisAU: 0.5,
+                eccentricity: "0.1",
+                periastronDeg: "0",
+                longitudeDeg: "0",
+                ascendingNodeDeg: "0",
+                inclinationDeg: 90.0,
+                surfaceTempK: "500",
+                ageGyr: "5",
+                discoveryMethod: "Transit",
+                discoveryYear: 2001,
+                lastUpdated: "2020",
+                rightAscension: "10",
+                declination: "10",
+                distFromSunParsec: "100",
+                hostStarMassSlrMass: 1.0,
+                hostStarRadiusSlrRad: 1.0,
+                hostStarMetallicity: 0.0,
+                hostStarTempK: 8000,
+                hostStarAgeGyr: "5"
+            )
+        ]
+        
+        let result = try? await withCheckedThrowingContinuation { continuation in
+            useCases.createDiscoveryTimelineBySize { result in
+                switch result {
+                case .success(let timeline):
+                    continuation.resume(returning: timeline)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        let expected: [Int: (small: Int, medium: Int, large: Int)] = [
+            2000: (small: 1, medium: 0, large: 0),
+            2001: (small: 0, medium: 1, large: 1)
+        ]
+        XCTAssertEqual(result, expected, "La línea de tiempo de descubrimientos debería coincidir con los conteos esperados")
+    }
+}
