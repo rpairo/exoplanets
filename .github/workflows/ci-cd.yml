@@ -38,7 +38,7 @@ jobs:
     needs: validate-pr
 
     steps:
-      # 1. Checkout del código
+      # 1. Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -49,10 +49,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3. Build the Docker image
-      - name: Build Docker Image
-        run: docker build -t rpairo/exoplanets:latest .
+      # 3. Verify Build Context
+      - name: Verify Build Context
+        run: ls -la
 
-      # 4. Push the Docker image to Docker Hub
+      # 4. Build the Docker image using the Dockerfile explicitly
+      - name: Build Docker Image
+        run: |
+          docker build -t rpairo/exoplanets:latest -f Dockerfile .
+
+      # 5. Push the Docker image to Docker Hub
       - name: Push Docker Image
         run: docker push rpairo/exoplanets:latest
