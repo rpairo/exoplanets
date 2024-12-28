@@ -6,7 +6,7 @@ struct Main {
         do {
             let environment = EnvironmentFactory.create()
             let appComposition: ApplicationFlow = AppComposition()
-            appComposition.build(for: environment)
+            try appComposition.build(for: environment)
             try await appComposition.start()
         } catch {
             print("Error: \(error.localizedDescription)")
