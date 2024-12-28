@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM swift:6.0.3 AS build
+FROM swift:6.0.3-jammy AS build
 
 # Set working directory
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN git clone https://github.com/rpairo/exoplanets.git /app
 RUN swift build --configuration release
 
 # Stage 2: Runtime
-FROM swift:6.0.3
+FROM swift:6.0.3-jammy
 
 # Set working directory
 WORKDIR /app
