@@ -36,6 +36,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Build and Push Docker Image
     runs-on: macos-latest
+    needs: validate-pr
 
     steps:
       # 1. Checkout del código
