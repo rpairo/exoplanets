@@ -1,36 +1,30 @@
 name: CI/CD Workflow
 
 on:
-  # Ejecutar los tests para todos los Pull Requests
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
 
-  # Construir y publicar imagen solo cuando se haga un merge en main
   push:
     branches:
       - main
 
 jobs:
-  # Job 1: Validar todos los Pull Requests
   validate-pr:
     name: Validate Pull Request
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout del código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Usar la imagen Docker de Swift 6.0.3 para ejecutar los tests
       - name: Run Tests with Swift 6.0.3
         uses: docker://swift:6.0.3
         with:
           args: swift test
 
-  # Job 2: Construir y Publicar Imagen en Docker Hub
   build-and-push:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Build and Push Docker Image
@@ -38,39 +32,19 @@ jobs:
     needs: validate-pr
 
     steps:
-      # 1. Checkout del código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Verificar el contexto de construcción
-      - name: Verify Build Context
-        run: ls -la
-
-      # 3. Set up QEMU for multi-arch builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
-
-      # 4. Crear un Builder con Soporte Multi-Arquitectura
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          install: true
-
-      # 5. Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 6. Build and push the image using the Dockerfile from the repository
-      - name: Build and Push Multi-Arch Image
+      - name: Build and Push Image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile
           push: true
           tags: rpairo/exoplanets:latest
-          platforms: linux/amd64,linux/arm64
