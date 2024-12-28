@@ -42,23 +42,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Set up QEMU for multi-arch builds
+      # 2. Verificar el contexto de construcción
+      - name: Verify Build Context
+        run: ls -la
+
+      # 3. Set up QEMU for multi-arch builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
 
-      # 3. Log in to Docker Hub
+      # 4. Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 4. Build and push the image
+      # 5. Build and push the image using the Dockerfile from the repository
       - name: Build and Push Multi-Arch Image
         uses: docker/build-push-action@v4
         with:
+          context: .
+          file: Dockerfile
           push: true
           tags: rpairo/exoplanets:latest
           platforms: linux/amd64,linux/arm64
