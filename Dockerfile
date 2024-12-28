@@ -11,7 +11,7 @@ RUN git clone https://github.com/rpairo/exoplanets.git /app
 RUN swift build --configuration release
 
 # Stage 2: Runtime
-FROM swift:6.0.3-slim
+FROM swift:6.0.3
 
 # Set working directory
 WORKDIR /app
