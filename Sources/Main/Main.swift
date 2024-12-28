@@ -4,7 +4,7 @@ import Composition
 struct Main {
     static func main() async {
         do {
-            let environment = EnvironmentFactory.create()
+            let environment = try EnvironmentFactory.create()
             let appComposition: ApplicationFlow = AppComposition()
             try appComposition.build(for: environment)
             try await appComposition.start()
