@@ -1,5 +1,0 @@
-import Foundation
-
-public protocol ExoplanetRepository {
-    func fetchExoplanets(completion: @escaping (Result<[Exoplanet], Error>) -> Void)
-}

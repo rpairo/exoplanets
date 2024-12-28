@@ -9,32 +9,50 @@ let package = Package(
     products: [
         .executable(
             name: "ExoplanetAnalyzer",
-            targets: ["ExoplanetAnalyzer"]),
+            targets: ["Main"]
+        ),
     ],
     dependencies: [],
     targets: [
         .target(
+            name: "Configuration",
+            dependencies: [],
+            path: "Sources/Configuration"
+        ),
+        .target(
             name: "Domain",
-            dependencies: []),
-        
+            dependencies: [],
+            path: "Sources/Domain"
+        ),
         .target(
             name: "Data",
-            dependencies: ["Domain"]),
-        
+            dependencies: ["Domain"],
+            path: "Sources/Data"
+        ),
         .target(
-            name: "UseCase",
-            dependencies: ["Domain", "Data"]),
-        
+            name: "Infrastructure",
+            dependencies: ["Configuration"],
+            path: "Sources/Infrastructure"
+        ),
+        .target(
+            name: "Presentation",
+            dependencies: ["Domain"],
+            path: "Sources/Presentation"
+        ),
         .target(
             name: "Composition",
-            dependencies: ["UseCase"]),
-        
+            dependencies: ["Data", "Domain", "Presentation", "Infrastructure", "Configuration"],
+            path: "Sources/Composition"
+        ),
         .executableTarget(
-            name: "ExoplanetAnalyzer",
-            dependencies: ["UseCase", "Composition"]),
-        
+            name: "Main",
+            dependencies: ["Composition", "Configuration"],
+            path: "Sources/Main"
+        ),
         .testTarget(
-            name: "ExoplanetAnalyzerTests",
-            dependencies: ["ExoplanetAnalyzer"]),
+            name: "Tests",
+            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure", "Configuration"],
+            path: "Tests"
+        )
     ]
 )
