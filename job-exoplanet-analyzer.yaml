@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: exoplanets-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: exoplanets
+    spec:
+      containers:
+      - name: exoplanets
+        image: rpairo/exoplanets:latest
+        env:
+        - name: APP_ENV
+          value: production
+      restartPolicy: Never
+  backoffLimit: 4
