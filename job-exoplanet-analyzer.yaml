@@ -1,18 +1,30 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: exoplanets-job
+  name: exoplanets-deployment
+  labels:
+    app: exoplanets
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exoplanets
   template:
     metadata:
       labels:
         app: exoplanets
     spec:
       containers:
-      - name: exoplanets
+      - name: exoplanets-container
         image: rpairo/exoplanets:latest
         env:
         - name: APP_ENV
-          value: production
-      restartPolicy: Never
-  backoffLimit: 4
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+        command: ["./ExoplanetAnalyzer"]
