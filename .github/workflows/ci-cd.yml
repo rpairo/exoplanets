@@ -21,7 +21,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Ejecutar los tests usando Swift
+      # 2. Instalar dependencias necesarias (incluye Docker)
+      - name: Install Docker
+        run: |
+          brew install --cask docker
+          open /Applications/Docker.app
+          sleep 10  # Espera a que Docker se inicie
+
+      # 3. Ejecutar los tests usando Swift
       - name: Run Tests
         run: swift test
 
@@ -35,9 +42,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Configurar Docker Buildx
-      - name: Set up Docker Buildx
+      # 2. Instalar Docker y configurar Buildx
+      - name: Install and Configure Docker
         run: |
+          brew install --cask docker
+          open /Applications/Docker.app
+          sleep 10  # Espera a que Docker se inicie
           docker buildx create --use --name mybuilder
           docker buildx inspect mybuilder --bootstrap
 
