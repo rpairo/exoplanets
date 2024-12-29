@@ -1,7 +1,7 @@
 import Foundation
 import Domain
 
-public final class RemoteExoplanetDataSource: ExoplanetDataSource {
+public struct RemoteExoplanetDataSource: ExoplanetDataSource {
     private let client: HTTPClient
     private let url: URL
     private let decoder: JSONDecoder

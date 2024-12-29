@@ -31,7 +31,7 @@ let package = Package(
         ),
         .target(
             name: "Infrastructure",
-            dependencies: ["Configuration"],
+            dependencies: ["Configuration", "Data"],
             path: "Sources/Infrastructure"
         ),
         .target(

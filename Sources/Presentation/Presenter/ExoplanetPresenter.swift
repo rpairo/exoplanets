@@ -1,6 +1,6 @@
 import Domain
 
-public final class ExoplanetPresenter: ExoplanetPresenting {
+public struct ExoplanetPresenter: ExoplanetPresenting {
     private let useCase: ExoplanetProcessing
     private let view: ExoplanetDisplaying
     private let timelineFormatter: TimelineFormatting

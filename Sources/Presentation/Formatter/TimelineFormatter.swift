@@ -1,6 +1,6 @@
 import Domain
 
-public final class TimelineFormatter: TimelineFormatting {
+public struct TimelineFormatter: TimelineFormatting {
     public init() { }
 
     public func format(_ timeline: YearlyPlanetSizeDistribution) -> (headers: String, separator: String, rows: [String]) {

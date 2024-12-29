@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public final class URLSessionHTTPClient: HTTPClient {
+public struct URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
 
     public init(session: URLSession = .shared) {

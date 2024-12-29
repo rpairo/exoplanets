@@ -36,9 +36,20 @@ public struct AppComposition: ApplicationFlow {
         }
         try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
 
-        let retryConfig = RetryConfig(maxAttempts: 3)
-        try container.register(NetworkRetryHandler(config: retryConfig), for: RetryableOperation.self)
-        try container.register(RemoteExoplanetRepository(dataSource: container.resolve(), retryHandler: container.resolve()), for: ExoplanetRepository.self)
+        try container.register(
+            RetryConfigurationProvider(
+                maxAttempts: config.maxAttempts,
+                delayBetweenAttempts: config.delayBetweenAttempts),
+            for: RetryConfiguration.self
+        )
+
+        try container.register(NetworkRetryHandler(configuration: container.resolve()), for: RetryableOperation.self)
+        try container.register(
+            RemoteExoplanetRepository(
+                dataSource: container.resolve(),
+                retryHandler: container.resolve()),
+            for: ExoplanetRepository.self
+        )
     }
 
     private func registerDomainLayer() throws {

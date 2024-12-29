@@ -1,4 +1,3 @@
-import Foundation
 import Domain
 
 public struct RemoteExoplanetRepository: ExoplanetRepository {
