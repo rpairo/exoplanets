@@ -202,4 +202,4 @@ This optimized approach significantly reduces the number of iterations over the 
 This refined methodology achieves all three objectives efficiently within a single iteration of the dataset. It highlights the importance of balancing theoretical computational complexity with real-world performance considerations. By optimizing the approach, we ensure the system remains performant and scalable for larger datasets.
 
 
-I have configured the AWS Secrets Manager to be deployed in region us-west-2 since this is the new zone for Arizona, and latency will be reduced.
+I have configured the AWS Secrets Manager to be deployed in us-west-2 region since this is the closest one from Arizona, and latency will be reduced.
