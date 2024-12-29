@@ -2,7 +2,7 @@ import Foundation
 import Domain
 
 public protocol ExoplanetPresenting {
-    func present() async throws -> PresentationResult
+    func presentExoplanets() async throws -> PresentationResult
 }
 
 public enum PresentationResult {

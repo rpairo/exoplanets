@@ -1,13 +1,13 @@
 import Foundation
 import Domain
 
-public final class ExoplanetRepositoryImpl: ExoplanetRepository {
+public struct RemoteExoplanetRepository: ExoplanetRepository {
     private let dataSource: ExoplanetDataSource
     private let retryHandler: RetryableOperation
 
-    public init(dataSource: ExoplanetDataSource, config: RetryConfig = .init()) {
+    public init(dataSource: ExoplanetDataSource, retryHandler: RetryableOperation) {
         self.dataSource = dataSource
-        self.retryHandler = NetworkRetryHandler(config: config)
+        self.retryHandler = retryHandler
     }
 
     public func fetchExoplanets() async throws -> [Exoplanet] {

@@ -34,9 +34,11 @@ public struct AppComposition: ApplicationFlow {
         guard let url = URL(string: config.apiURL) else {
             throw AppCompositionError.invalidConfigurationURL(config.apiURL)
         }
-
         try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
-        try container.register(ExoplanetRepositoryImpl(dataSource: container.resolve()), for: ExoplanetRepository.self)
+
+        let retryConfig = RetryConfig(maxAttempts: 3)
+        try container.register(NetworkRetryHandler(config: retryConfig), for: RetryableOperation.self)
+        try container.register(RemoteExoplanetRepository(dataSource: container.resolve(), retryHandler: container.resolve()), for: ExoplanetRepository.self)
     }
 
     private func registerDomainLayer() throws {
@@ -44,13 +46,21 @@ public struct AppComposition: ApplicationFlow {
     }
 
     private func registerPresentationLayer() throws {
-        try container.register(ConsoleView(), for: ExoplanetView.self)
-        try container.register(ExoplanetPresenter(useCases: container.resolve(), view: container.resolve()), for: ExoplanetPresenting.self)
+        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
+        try container.register(TerminalExoplanetView(printer: container.resolve()), for: ExoplanetDisplaying.self)
+        try container.register(TimelineFormatter(), for: TimelineFormatting.self)
+        try container.register(
+            ExoplanetPresenter(
+                useCases: container.resolve(),
+                view: container.resolve(),
+                formatter: container.resolve()),
+            for: ExoplanetPresenting.self
+        )
     }
 
     public func start() async throws {
         let presenter: ExoplanetPresenting = try container.resolve()
-        _ = try await presenter.present()
+        _ = try await presenter.presentExoplanets()
     }
 }
 
