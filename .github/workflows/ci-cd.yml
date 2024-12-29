@@ -39,9 +39,9 @@ jobs:
       - name: Run Tests with Swift 6.0.3
         uses: docker://swift:6.0.3
         env:
-          BASE_API_URL: ${{ env.BASE_URL }}
-          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
-          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
+          BASE_API_URL: ${{ secrets.BASE_URL }}
+          PATH_SEGMENT: ${{ secrets.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ secrets.ENDPOINT_EXOPLANETS }}
         with:
           args: swift test
 
