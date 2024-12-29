@@ -36,7 +36,7 @@ jobs:
         id: api-config
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
-          secret-ids: exoplanets-analyzer-api-url-test
+          secret-id: exoplanets-analyzer-api-url-test
 
       - name: Parse API test configuration
         run: |
@@ -77,7 +77,7 @@ jobs:
         id: docker-secrets
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
-          secret-ids: docker-credentials
+          secret-id: docker-credentials
 
       - name: Parse Docker credentials
         run: |
