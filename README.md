@@ -201,5 +201,24 @@ This optimized approach significantly reduces the number of iterations over the 
 ## Conclusion
 This refined methodology achieves all three objectives efficiently within a single iteration of the dataset. It highlights the importance of balancing theoretical computational complexity with real-world performance considerations. By optimizing the approach, we ensure the system remains performant and scalable for larger datasets.
 
+## AWS Secrets Manager
+
+To avoid expose the API url directly to the code, as well as the Docker credentials, I have chose for the option to create an externalised service that vault and provide these details.
+Then I just have to store the IAM credentials in my GitHub Repository Secrets, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: 'exoplanets-analyzer-api-url-test' for testing, and 'docker-credentials' to login and push to Docker Hub the new Image.
+
+For more security, I have created a custom IAM policy that only has read access only to both Secrets.
+I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
+This is IAM user I have used to set up its Access Key ID and Secret Key.
 
 I have configured the AWS Secrets Manager to be deployed in us-west-2 region since this is the closest one from Arizona, and latency will be reduced.
+
+I have set up 3 secrets:
+- exoplanets-analyzer-api-url-prod (To set up the URL's and required environment setup for production).
+- exoplanets-analyzer-api-url-dev (To set up the URL's and required environment setup for development).
+- exoplanets-analyzer-api-url-test (To set up the URL's and required environment setup for testing).
+- docker-credentials (To be able to build and push the new Image to Docker Hub).
+
+## CI/CD Flow
+Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes.
+
+.github/workflows/ci-cd.yml GitHub yaml to configure the 
