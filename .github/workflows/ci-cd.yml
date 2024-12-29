@@ -27,7 +27,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           echo "Fetching secrets from AWS Secrets Manager..."
-          
+
           api_secrets=$(aws secretsmanager get-secret-value \
           --secret-id exoplanets-analyzer-api-url-test \
           --query SecretString \
@@ -74,9 +74,11 @@ jobs:
             --query SecretString \
             --output text)
   
-          echo "Extracting docker-credentials..."
           export USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)
           export PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)
+
+          echo "USERNAME=$USERNAME" >> $GITHUB_ENV
+          echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
