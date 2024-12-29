@@ -27,22 +27,19 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           echo "Fetching secrets from AWS Secrets Manager..."
-  
-          # Retrieve exoplanets-analyzer-api-url-test secret
+          
           api_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id exoplanets-analyzer-api-url-test \
-            --query SecretString \
-            --output text)
-  
-          echo "Extracting exoplanets-analyzer-api-url-test..."
+          --secret-id exoplanets-analyzer-api-url-test \
+          --query SecretString \
+          --output text)
+
           export BASE_URL=$(echo "$api_secrets" | jq -r .BASE_URL)
           export PATH_SEGMENT=$(echo "$api_secrets" | jq -r .PATH_SEGMENT)
           export ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r .ENDPOINT_EXOPLANETS)
-  
-          # Debugging output (optional, do not expose sensitive data)
-          echo "BASE_URL=${BASE_URL}"
-          echo "PATH_SEGMENT=${PATH_SEGMENT}"
-          echo "ENDPOINT_EXOPLANETS=${ENDPOINT_EXOPLANETS}"
+
+          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
 
       - name: Run Tests with Swift 6.0.3
         uses: docker://swift:6.0.3
