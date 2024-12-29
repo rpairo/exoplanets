@@ -24,7 +24,7 @@ public struct ConfigurationFactory {
             baseAPIURL: "https://mock.test",
             exoplanetsEndpoint: "/exoplanets",
             maxAttempts: 1,
-            delayBetweenAttempts: 0.2
+            delayBetweenAttempts: 0.1
         )
     }
 }
