@@ -22,7 +22,7 @@ public struct ConfigurationFactory {
     private static func testingConfiguration() -> AppConfiguration {
         AppConfiguration(
             baseAPIURL: "https://mock.test",
-            exoplanetsEndpoint: "/exoplanets",
+            exoplanetsEndpoint: "/exoplanetss",
             maxAttempts: 1,
             delayBetweenAttempts: 0.1
         )
