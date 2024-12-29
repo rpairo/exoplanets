@@ -10,7 +10,6 @@ public class NetworkRetryHandler: RetryableOperation {
 
     public func execute<T>(_ operation: @escaping () async throws -> T) async throws -> T {
         var lastError: Error?
-
         for attempt in 1...configuration.maxAttempts {
             do {
                 return try await operation()
