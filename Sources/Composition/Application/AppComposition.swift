@@ -10,18 +10,18 @@ public struct AppComposition: ApplicationFlow {
 
     public init() {}
 
-    public func build(for environment: Environment) throws {
+    public func build() throws {
         container.reset()
 
-        try registerConfiguration(for: environment)
+        try registerConfiguration()
         try registerNetworking()
         try registerDataLayer()
         try registerDomainLayer()
         try registerPresentationLayer()
     }
 
-    private func registerConfiguration(for environment: Environment) throws {
-        try container.register(EnvironmentConfigurationProvider(environment: environment), for: AppConfigurationProvider.self)
+    private func registerConfiguration() throws {
+        try container.register(ConfigurationProvider(), for: AppConfigurationProvider.self)
     }
 
     private func registerNetworking() throws {

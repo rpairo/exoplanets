@@ -4,9 +4,8 @@ import Composition
 struct Main {
     static func main() async {
         do {
-            let environment = try EnvironmentFactory.create()
             let appComposition: ApplicationFlow = AppComposition()
-            try appComposition.build(for: environment)
+            try appComposition.build()
             try await appComposition.start()
         } catch {
             print("Error: \(error.localizedDescription)")
