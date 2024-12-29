@@ -20,42 +20,48 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
-
-      - name: Configure AWS CLI
+      - name: Retrieve AWS Secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set region us-west-1
+          echo "Fetching secrets from AWS Secrets Manager..."
+  
+          # Retrieve docker-credentials secret
+          docker_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id docker-credentials \
+            --query SecretString \
+            --output text)
+  
+          echo "Extracting docker-credentials..."
+          export USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)
+          export PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)
+  
+          # Retrieve exoplanets-analyzer-api-url-test secret
+          api_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id exoplanets-analyzer-api-url-test \
+            --query SecretString \
+            --output text)
+  
+          echo "Extracting exoplanets-analyzer-api-url-test..."
+          export BASE_URL=$(echo "$api_secrets" | jq -r .BASE_URL)
+          export PATH_SEGMENT=$(echo "$api_secrets" | jq -r .PATH_SEGMENT)
+          export ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r .ENDPOINT_EXOPLANETS)
+  
+          # Debugging output (optional, do not expose sensitive data)
+          echo "BASE_URL=${BASE_URL}"
+          echo "PATH_SEGMENT=${PATH_SEGMENT}"
+          echo "ENDPOINT_EXOPLANETS=${ENDPOINT_EXOPLANETS}"
 
-      - name: Retrieve API test configuration
-        id: get-secret
-        run: |
-          secret=$(aws secretsmanager get-secret-value --secret-id exoplanets-analyzer-api-url-test --query SecretString --output text)
-          echo $secret | jq -r '.BASE_URL' > base_url.txt
-          echo $secret | jq -r '.PATH_SEGMENT' > path_segment.txt
-          echo $secret | jq -r '.ENDPOINT_EXOPLANETS' > endpoint.txt
-
-      - name: Export Environment Variables
-        run: |
-          echo "BASE_URL=$(cat base_url.txt)" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$(cat path_segment.txt)" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$(cat endpoint.txt)" >> $GITHUB_ENV
-
-      - name: Run Tests
-        run: |
-          docker run --rm \
-            -e BASE_API_URL=$BASE_URL \
-            -e PATH_SEGMENT=$PATH_SEGMENT \
-            -e ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS \
-            swift:6.0.3 swift test
+      - name: Run Tests with Swift 6.0.3
+        uses: docker://swift:6.0.3
+        env:
+          BASE_API_URL: ${{ env.BASE_URL }}
+          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
+        with:
+          args: swift test
 
   build-and-push:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -67,20 +73,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
-
-      - name: Retrieve Docker credentials
-        id: docker-secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
-        with:
-          secret-ids: |
-            USERNAME, docker-credentials
-            PASSWORD, docker-credentials
+      - name: Retrieve AWS Secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          echo "Fetching secrets from AWS Secrets Manager..."
+  
+          # Retrieve docker-credentials secret
+          docker_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id docker-credentials \
+            --query SecretString \
+            --output text)
+  
+          echo "Extracting docker-credentials..."
+          export USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)
+          export PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)
+  
+          # Retrieve exoplanets-analyzer-api-url-test secret
+          api_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id exoplanets-analyzer-api-url-test \
+            --query SecretString \
+            --output text)
+  
+          echo "Extracting exoplanets-analyzer-api-url-test..."
+          export BASE_URL=$(echo "$api_secrets" | jq -r .BASE_URL)
+          export PATH_SEGMENT=$(echo "$api_secrets" | jq -r .PATH_SEGMENT)
+          export ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r .ENDPOINT_EXOPLANETS)
+  
+          # Debugging output (optional, do not expose sensitive data)
+          echo "BASE_URL=${BASE_URL}"
+          echo "PATH_SEGMENT=${PATH_SEGMENT}"
+          echo "ENDPOINT_EXOPLANETS=${ENDPOINT_EXOPLANETS}"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
