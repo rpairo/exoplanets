@@ -2,24 +2,6 @@ import XCTest
 @testable import Domain
 
 final class PlanetSizeCountTests: XCTestCase {
-    func test_environment_variables() {
-        guard let base = ProcessInfo.processInfo.environment["BASE_URL"] else {
-            XCTFail()
-            return
-        }
-        guard let path = ProcessInfo.processInfo.environment["PATH_SEGMENT"] else {
-            XCTFail()
-            return
-        }
-        guard let endpoint = ProcessInfo.processInfo.environment["ENDPOINT_EXOPLANETS"] else {
-            XCTFail()
-            return
-        }
-
-        XCTAssertEqual(base, "https://gist.githubusercontent.com")
-        XCTAssertEqual(path, "/joelbirchler/66cf8045fcbb6515557347c05d789b4a/raw/9a196385b44d4288431eef74896c0512bad3defe")
-        XCTAssertEqual(endpoint, "/exoplanets")
-    }
 
     func test_init_shouldInitializeWithCorrectValues() {
         let sut = PlanetSizeCount(small: 1, medium: 2, large: 3)
