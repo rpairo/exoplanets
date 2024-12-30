@@ -10,9 +10,9 @@ on:
 
 jobs:
   validate-pr:
-    if: github.event_name == 'pull_request'
     name: Validate Pull Request
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout code
@@ -49,9 +49,9 @@ jobs:
           args: swift test
 
   build-scan-and-push:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Build, Scan, and Push Docker Images
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: validate-pr
 
     steps:
