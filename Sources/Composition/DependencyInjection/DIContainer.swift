@@ -2,9 +2,7 @@ import Foundation
 
 public final class DIContainer {
     public static let shared = DIContainer()
-
     private var services: [String: Any] = [:]
-
     private init() {}
 
     public func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
