@@ -4,38 +4,28 @@ metadata:
   name: exoplanets-job
 spec:
   template:
+    metadata:
+      name: exoplanets-job
     spec:
-      serviceAccountName: kubernetes-user
       containers:
         - name: exoplanets
-          image: rpairo/exoplanets-terminal:latest
+          image: rpairo/exoplanet-terminal:latest
           command: ["./ExoplanetTerminal"]
-          volumeMounts:
-            - name: secrets-store
-              mountPath: "/mnt/secrets-store"
-              readOnly: true
           env:
             - name: BASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: exoplanets-secrets
+                  name: exoplanets-local-secrets
                   key: BASE_URL
             - name: PATH_SEGMENT
               valueFrom:
                 secretKeyRef:
-                  name: exoplanets-secrets
+                  name: exoplanets-local-secrets
                   key: PATH_SEGMENT
             - name: ENDPOINT_EXOPLANETS
               valueFrom:
                 secretKeyRef:
-                  name: exoplanets-secrets
+                  name: exoplanets-local-secrets
                   key: ENDPOINT_EXOPLANETS
-      volumes:
-        - name: secrets-store
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: "aws-secrets"
       restartPolicy: Never
   backoffLimit: 0
