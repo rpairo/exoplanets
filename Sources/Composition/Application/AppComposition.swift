@@ -4,7 +4,7 @@ import Domain
 import Infrastructure
 import Presentation
 
-public struct AppComposition: ApplicationFlow {
+public struct AppComposition: ApplicationBuilder {
     private let container = DIContainer.shared
 
     public init() {}
@@ -66,11 +66,6 @@ public struct AppComposition: ApplicationFlow {
                 timelineFormatter: container.resolve()),
             for: ExoplanetDisplaying.self
         )
-    }
-
-    public func start() throws {
-        let terminal: ExoplanetDisplaying = try container.resolve()
-        terminal.show()
     }
 }
 

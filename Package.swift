@@ -40,7 +40,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "Main",
-            dependencies: ["Composition"],
+            dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
         ),
         .testTarget(

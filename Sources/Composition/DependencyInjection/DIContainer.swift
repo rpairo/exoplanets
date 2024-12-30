@@ -7,7 +7,7 @@ public final class DIContainer {
 
     private init() {}
 
-    func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
+    public func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
         let key = String(describing: protocolType)
         if services[key] != nil {
             throw DIContainerError.dependencyAlreadyRegistered(dependency: key)
@@ -15,7 +15,7 @@ public final class DIContainer {
         services[key] = service
     }
 
-    func resolve<Service>() throws -> Service {
+    public func resolve<Service>() throws -> Service {
         let key = String(describing: Service.self)
         guard let service = services[key] as? Service else {
             throw DIContainerError.dependencyNotFound(dependency: key)

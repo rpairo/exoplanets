@@ -1,12 +1,15 @@
 import Composition
+import Presentation
 
 @main
 struct Main {
     static func main() async {
         do {
-            let appComposition: ApplicationFlow = AppComposition()
+            let appComposition: ApplicationBuilder = AppComposition()
             try await appComposition.build()
-            try appComposition.start()
+
+            let terminal: ExoplanetDisplaying = try DIContainer.shared.resolve()
+            terminal.show()
         } catch {
             print("Error: \(error.localizedDescription)")
         }
