@@ -183,6 +183,16 @@ private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exop
 }
 ```
 
+### 3. Generate a timeline of planet discoveries grouped by size categories.
+
+```swift
+private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
+    guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
+    let category = SizeCategory(radius: radius)
+    return (year: year, sizes: category.sizeCount)
+}
+```
+
 ```swift
 enum SizeCategory {
     case small
@@ -215,16 +225,6 @@ enum SizeCategory {
     }
 }
 
-```
-
-### 3. Generate a timeline of planet discoveries grouped by size categories.
-
-```swift
-private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
-    guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
-    let category = SizeCategory(radius: radius)
-    return (year: year, sizes: category.sizeCount)
-}
 ```
 
 # Methodology
@@ -611,4 +611,4 @@ This is required cause Xcode does not share the OS environment variables.
 
 Product -> Scheme -> Edit Scheme -> <target>
 
-![Xcode environment variables setup](https://github.com/user-attachments/assets/d56cdfd9-3799-412d-84d3-7d88bd8cc81e)
+![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
