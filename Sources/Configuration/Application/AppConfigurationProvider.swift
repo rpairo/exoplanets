@@ -1,3 +1,3 @@
 public protocol AppConfigurationProvider {
-    func provideConfiguration() -> AppConfiguration
+    func provideConfiguration() throws -> AppConfiguration
 }

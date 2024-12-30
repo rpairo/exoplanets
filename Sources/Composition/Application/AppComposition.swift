@@ -30,7 +30,7 @@ public struct AppComposition: ApplicationFlow {
 
     private func registerDataLayer() throws {
         let configProvider: AppConfigurationProvider = try container.resolve()
-        let config = configProvider.provideConfiguration()
+        let config = try configProvider.provideConfiguration()
         guard let url = URL(string: config.apiURL) else {
             throw AppCompositionError.invalidConfigurationURL(config.apiURL)
         }

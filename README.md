@@ -287,6 +287,8 @@ public func processExoplanets() async throws -> ProcessedExoplanetResult {
 ## Conclusion
 This refined methodology achieves all three objectives efficiently within a single iteration of the dataset. It highlights the importance of balancing theoretical computational complexity with real-world performance considerations. By optimizing the approach, we ensure the system remains performant and scalable for larger datasets.
 
+# Technical details
+
 ## AWS Secrets Manager
 
 To avoid expose the API url directly to the code, as well as the Docker credentials, I have chose for the option to create an externalised service that vault and provide these details.
@@ -347,3 +349,51 @@ After building the executable, Docker creates a second image using swift:6.0.3-s
 
 #### Docker Hub
 The built images are stored in **[Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)** for easy access and deployment.
+
+
+## Dependency Injection
+
+To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
+
+```swift
+public final class DIContainer {
+    public static let shared = DIContainer()
+
+    private var services: [String: Any] = [:]
+
+    private init() {}
+
+    func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
+        let key = String(describing: protocolType)
+        if services[key] != nil {
+            throw DIContainerError.dependencyAlreadyRegistered(dependency: key)
+        }
+        services[key] = service
+    }
+
+    func resolve<Service>() throws -> Service {
+        let key = String(describing: Service.self)
+        guard let service = services[key] as? Service else {
+            throw DIContainerError.dependencyNotFound(dependency: key)
+        }
+        return service
+    }
+
+    public func reset() {
+        services.removeAll()
+    }
+}
+```
+
+The work flow is simple: first you register the implementation for determinate type:
+```swift
+try container.register(URLSessionHTTPClient(), for: HTTPClient.self)
+```
+
+To later resolve the dependency:
+```swift
+try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
+```
+
+The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
+
