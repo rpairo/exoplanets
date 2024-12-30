@@ -397,6 +397,9 @@ try container.register(RemoteExoplanetDataSource(client: container.resolve(), ur
 
 The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
 
+DI Usage: [File](Sources/Composition/Application/AppComposition.swift), 
+DI Definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
+
 ## Network Retry Handler
 
 ```swift
