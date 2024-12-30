@@ -437,8 +437,8 @@ The pair implementation and type are stored into key value dictionary at registr
 
 Dependency Injection example of usage: [File](Sources/Composition/Application/AppComposition.swift)
 
-## Network Retry Handler
 
+## Network Retry Handler
 
 Network Retry Handler definition: [File](Sources/Infrastructure/Network/NetworkRetryHandler.swift)
 ```swift
@@ -469,6 +469,21 @@ public struct NetworkRetryHandler: RetryableOperation {
 ## Clean architecture
 
 Package definition: [File](Package.swift)
+
+This file has the project structure and targets definitions. I have set up two executables: 
+- **ExoplanetTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
+
+- **ExoplanetAPI**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet consumtion results.
+
+To develop this project I have followed the clean architecture conventions. In this case, the inned layers are agnostic to the above layers. You can notice the dependencies by the *dependencies: ["layer"]* parameter in the project configuration.
+
+- Domain: Does not has any dependency. It contains the core business logic. It is independent of any other layer.
+- Data: Has Domain dependency. It contains the data consumtion required for the aplication.
+- Infrastructure: Has Data dependency. It contains the connections and envinronmental configurations.
+- Presentation: Has Domain dependency. It contains the logic to prepare the results obtainted from domain, and display them.
+- Composition: Has Domain, Data, Presentation and Infrastructure dependencies. It takes care of the project building. It contains the dependency injector and the project build flow.
+- ExoplanetTerminal: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
+- ExoplanetAPI: Has Composition, Presentation and Domain dependencies. It provides an interface to propagate the expolanets information to library consumers.
 
 ```swift
 // swift-tools-version:5.9
@@ -604,7 +619,7 @@ public struct AppComposition: ApplicationBuilder {
 }
 ```
 
-## Local Execution by Xcode
+## Local Execution by Xcode (Development)
 To run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target.
 
 This is required cause Xcode does not share the OS environment variables.
@@ -612,3 +627,15 @@ This is required cause Xcode does not share the OS environment variables.
 Product -> Scheme -> Edit Scheme -> <target>
 
 ![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
+
+## Kubernetes (Local)
+I have been using Kubernetes by Docker Desktop, and this has limited me the capacity to implement the AWS Secrets Manager. For that reason, if you are going to try to run by local Docker Desktop, I have prepared few scripts to set up the local secrets that stores the url's environment variables:
+
+- [deploy-k8s.sh](k8s/scripts/deploy-k8s.sh): This file will trigger the deployment flow. First will call *create-secrets-docker-desktop.sh*, then will call *exoplanets-terminal.yaml* to set up the instructions to run the image in kubernetes.
+
+- [create-secrets-docker-desktop.sh](k8s/scripts/create-secrets-docker-desktop.sh): This file will check if kubernetes is running by *Docker Desktop*. In case it does, it will create a local secret decoding the base64 urls. This is necessary cause it is not possible to connect AWS Secrets Manager to local Docker Desktop.
+
+- [exoplanets-terminal.yaml](k8s/base/exoplanets-terminal.yaml): This file contains all the required instructions to pull the image from docker hub, set up and run in kubernetes.
+
+Notice I have chose to create a **Job** instead of **Deployment** since this project is made to run once. Does not requires to be restarted every time it finish and stops.
+
