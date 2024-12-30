@@ -1,7 +1,7 @@
 import Foundation
 import Data
 
-public class NetworkRetryHandler: RetryableOperation {
+public struct NetworkRetryHandler: RetryableOperation {
     private let configuration: RetryConfiguration
 
     public init(configuration: RetryConfiguration) {

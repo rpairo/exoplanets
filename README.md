@@ -436,7 +436,7 @@ DI Definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
 ## Network Retry Handler
 
 ```swift
-public class NetworkRetryHandler: RetryableOperation {
+public struct NetworkRetryHandler: RetryableOperation {
     private let configuration: RetryConfiguration
 
     public init(configuration: RetryConfiguration) {
