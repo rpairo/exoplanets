@@ -5,6 +5,8 @@ public struct ConfigurationFactory {
         let baseURLKey = "BASE_URL"
         let pathSegmentKey = "PATH_SEGMENT"
         let endpointKey = "ENDPOINT_EXOPLANETS"
+        let apiRequestMaxAttempts = 5
+        let delayBetweenAttempts = 2.0
 
         guard let base = ProcessInfo.processInfo.environment[baseURLKey] else {
             throw ConfigurationError.missingEnvironmentVariable(baseURLKey)
@@ -20,8 +22,8 @@ public struct ConfigurationFactory {
             baseAPIURL: base,
             exoplanetsPathSegment: path,
             exoplanetsEndpoint: endpoint,
-            maxAttempts: 5,
-            delayBetweenAttempts: 2.0
+            maxAttempts: apiRequestMaxAttempts,
+            delayBetweenAttempts: delayBetweenAttempts
         )
     }
 }
