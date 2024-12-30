@@ -7,10 +7,7 @@ spec:
     spec:
       containers:
       - name: exoplanets
-        image: rpairo/exoplanets:latest
-        env:
-        - name: APP_ENV
-          value: "production"
-        command: ["./ExoplanetAnalyzer"]
+        image: rpairo/exoplanets-terminal:latest
+        command: ["./ExoplanetTerminal"]
       restartPolicy: Never
   backoffLimit: 0
