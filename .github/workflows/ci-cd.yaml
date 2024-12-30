@@ -89,11 +89,11 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t rpairo/exoplanets:latest .
-
+  
       - name: Scan Docker Image with Docker Scout
         run: |
-          docker scout cves --exit-code 1 rpairo/exoplanets:latest
-
+          docker scout cves rpairo/exoplanets:latest || exit 1
+  
       - name: Push Docker Image
         if: success()
         run: |
