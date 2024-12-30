@@ -166,9 +166,66 @@ In the execution, we have find out there are 2 exoplanets those are orphan:
 - PSO J318.5-22
 - CFBDSIR2149
 
+```swift
+private func isOrphan(exoplanet: Exoplanet) -> Bool {
+    guard let flag = exoplanet.typeFlag, flag == Constants.orphanTypeFlag else { return false }
+    return true
+}
+```
+
 ### 2. Find the planet orbiting the hottest star.
 
+```swift
+private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exoplanet) -> Exoplanet? {
+    guard let newTemp = newExoplanet.hostStarTempK else { return currentHottest }
+    guard let currentTemp = currentHottest?.hostStarTempK else { return newExoplanet }
+    return newTemp > currentTemp ? newExoplanet : currentHottest
+}
+```
+
+```swift
+enum SizeCategory {
+    case small
+    case medium
+    case large
+
+    static let smallThreshold = 1.0
+    static let mediumThreshold = 2.0
+
+    init(radius: Double) {
+        switch radius {
+        case 0..<Self.smallThreshold:
+            self = .small
+        case Self.smallThreshold..<Self.mediumThreshold:
+            self = .medium
+        default:
+            self = .large
+        }
+    }
+
+    var sizeCount: PlanetSizeCount {
+        switch self {
+        case .small:
+            return PlanetSizeCount(small: 1, medium: 0, large: 0)
+        case .medium:
+            return PlanetSizeCount(small: 0, medium: 1, large: 0)
+        case .large:
+            return PlanetSizeCount(small: 0, medium: 0, large: 1)
+        }
+    }
+}
+
+```
+
 ### 3. Generate a timeline of planet discoveries grouped by size categories.
+
+```swift
+private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
+    guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
+    let category = SizeCategory(radius: radius)
+    return (year: year, sizes: category.sizeCount)
+}
+```
 
 # Methodology
 
@@ -188,6 +245,35 @@ Upon reflection, I realized that all three goals could be achieved within a sing
 
 This optimized approach significantly reduces the number of iterations over the dataset while maintaining the same `O(n)` asymptotic complexity. However, in real-world scenarios, reducing the number of loops improves runtime efficiency and can lead to measurable performance gains, especially with larger datasets.
 
+```swift
+public func processExoplanets() async throws -> ProcessedExoplanetResult {
+    let exoplanets = try await repository.fetchExoplanets()
+
+    var orphanPlanets = [Exoplanet]()
+    var timeline = YearlyPlanetSizeDistribution()
+    var hottestStarExoplanet: Exoplanet?
+
+    for exoplanet in exoplanets {
+        if let record = createTimelineRecord(for: exoplanet) {
+            let currentCount = timeline[record.year] ?? .zero
+            timeline[record.year] = currentCount.adding(record.sizes)
+        }
+
+        if isOrphan(exoplanet: exoplanet) {
+            orphanPlanets.append(exoplanet)
+        }
+
+        hottestStarExoplanet = determineHottestStar(currentHottest: hottestStarExoplanet, newExoplanet: exoplanet)
+    }
+
+    return ProcessedExoplanetResult(
+        orphanPlanets: orphanPlanets,
+        timeline: timeline,
+        hottestStarExoplanet: hottestStarExoplanet
+    )
+}
+```
+
 ## Implementation Benefits
 1. **Reduced Redundancy:**
    - Combining the operations eliminates the need for multiple loops, saving computational resources.
@@ -204,7 +290,7 @@ This refined methodology achieves all three objectives efficiently within a sing
 ## AWS Secrets Manager
 
 To avoid expose the API url directly to the code, as well as the Docker credentials, I have chose for the option to create an externalised service that vault and provide these details.
-Then I just have to store the IAM credentials in my GitHub Repository Secrets, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: 'exoplanets-analyzer-api-url-test' for testing, and 'docker-credentials' to login and push to Docker Hub the new Image.
+Then I just have to store the IAM credentials in my GitHub Repository Secrets, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: 'exoplanets-analyzer-api-url-test' for testing, and 'docker-credentials' to login, scan image vulnerabilities and push to Docker Hub the new image.
 
 For more security, I have created a custom IAM policy that only has read access only to both Secrets.
 I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
@@ -224,12 +310,24 @@ Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes
 In GitHub the main branch is protected and restricted to add code only by Pull Requests.
 
 ### GitHub Actions
-[GitHub Actions Configuration File](.github/workflows/ci-cd.yaml): Yaml file to configure the GitHub Actions behaviour. In it, I have set up 2 jobs:
-- validate-pr: Wich for any pull request will check if there is any conflict, get the url's from aws secrets, set them up to env vars and run the tests.
-- build-and-push: It depends on validate-pr job. If this passes and merges to main, will get the docker credentials from aws secrets, build a new docker image with the main code, and push it to docker hub. 
+This [YAML](.github/workflows/ci-cd.yaml) file defines the configuration for the GitHub Actions workflow. It includes the following two jobs:
+
+- **`validate-pr`:**  
+  This job is triggered for every pull request. It performs the following tasks:
+  - Checks for conflicts within the pull request.
+  - Retrieves URLs and other secrets from AWS Secrets Manager.
+  - Sets the retrieved secrets as environment variables.
+  - Runs the tests to validate the pull request changes.
+
+- **`build-scan-and-push`:**  
+  This job depends on the successful completion of the `validate-pr` job. It is triggered when changes are merged into the main branch. This job:
+  - Retrieves Docker credentials from AWS Secrets Manager.
+  - Builds a new Docker image using the main branch code.
+  - Scans the Docker image with Docker Scout to identify vulnerabilities.
+  - Pushes the image to Docker Hub only if no critical or high-severity vulnerabilities are found during the scan.
 
 ### Docker
-[Dockerfile](Dockerfile): File that contains the instructions to build up a Docker Image based on my code.
+This [Dockerfile](Dockerfile) file contains the instructions to build up a Docker Image based on my code.
 
 In this case, I could use the command:
 ```dockerfile
@@ -247,4 +345,5 @@ In the Dockerfile, I chose to use swift:6.0.3 as the base image to ensure that a
 
 After building the executable, Docker creates a second image using swift:6.0.3-slim as the base image, which contains only the minimal dependencies required to run the executable. This approach ensures that the final image is smaller, as it includes only the built executable and the essential runtime environment.
 
-[Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)
+#### Docker Hub
+The built images are stored in **[Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)** for easy access and deployment.
