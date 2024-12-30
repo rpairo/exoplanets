@@ -2,14 +2,18 @@ import Foundation
 
 public struct ConfigurationFactory {
     static func create() throws -> AppConfiguration {
-        guard let base = ProcessInfo.processInfo.environment["BASE_URL"] else {
-            throw ConfigurationError.missingEnvironmentVariable("BASE_URL")
+        let baseURLKey = "BASE_URL"
+        let pathSegmentKey = "PATH_SEGMENT"
+        let endpointKey = "ENDPOINT_EXOPLANETS"
+
+        guard let base = ProcessInfo.processInfo.environment[baseURLKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(baseURLKey)
         }
-        guard let path = ProcessInfo.processInfo.environment["PATH_SEGMENT"] else {
-            throw ConfigurationError.missingEnvironmentVariable("PATH_SEGMENT")
+        guard let path = ProcessInfo.processInfo.environment[pathSegmentKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(pathSegmentKey)
         }
-        guard let endpoint = ProcessInfo.processInfo.environment["ENDPOINT_EXOPLANETS"] else {
-            throw ConfigurationError.missingEnvironmentVariable("ENDPOINT_EXOPLANETS")
+        guard let endpoint = ProcessInfo.processInfo.environment[endpointKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(endpointKey)
         }
 
         return AppConfiguration(

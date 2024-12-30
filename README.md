@@ -351,6 +351,36 @@ After building the executable, Docker creates a second image using swift:6.0.3-s
 The built images are stored in **[Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)** for easy access and deployment.
 
 
+## API URL Abstraction
+
+```swift
+public struct ConfigurationFactory {
+    static func create() throws -> AppConfiguration {
+        let baseURLKey = "BASE_URL"
+        let pathSegmentKey = "PATH_SEGMENT"
+        let endpointKey = "ENDPOINT_EXOPLANETS"
+
+        guard let base = ProcessInfo.processInfo.environment[baseURLKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(baseURLKey)
+        }
+        guard let path = ProcessInfo.processInfo.environment[pathSegmentKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(pathSegmentKey)
+        }
+        guard let endpoint = ProcessInfo.processInfo.environment[endpointKey] else {
+            throw ConfigurationError.missingEnvironmentVariable(endpointKey)
+        }
+
+        return AppConfiguration(
+            baseAPIURL: base,
+            exoplanetsPathSegment: path,
+            exoplanetsEndpoint: endpoint,
+            maxAttempts: 5,
+            delayBetweenAttempts: 2.0
+        )
+    }
+}
+```
+
 ## Dependency Injection
 
 To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
@@ -397,7 +427,8 @@ try container.register(RemoteExoplanetDataSource(client: container.resolve(), ur
 
 The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
 
-DI Usage: [File](Sources/Composition/Application/AppComposition.swift), 
+DI Example of usage: [File](Sources/Composition/Application/AppComposition.swift)
+
 DI Definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
 
 ## Network Retry Handler
