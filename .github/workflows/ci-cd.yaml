@@ -86,10 +86,15 @@ jobs:
           username: ${{ env.USERNAME }}
           password: ${{ env.PASSWORD }}
 
-      - name: Build and Push Image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: rpairo/exoplanets:latest
+      - name: Build Docker Image
+        run: |
+          docker build -t rpairo/exoplanets:latest .
+
+      - name: Scan Docker Image with Docker Scout
+        run: |
+          docker scout cves --exit-code 1 rpairo/exoplanets:latest
+
+      - name: Push Docker Image
+        if: success()
+        run: |
+          docker push rpairo/exoplanets:latest

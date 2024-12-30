@@ -223,11 +223,12 @@ Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes
 
 In GitHub the main branch is protected and restricted to add code only by Pull Requests.
 
-### GitHub Actions configuration file
+### GitHub Actions
 [GitHub Actions Configuration File](.github/workflows/ci-cd.yaml): Yaml file to configure the GitHub Actions behaviour. In it, I have set up 2 jobs:
 - validate-pr: Wich for any pull request will check if there is any conflict, get the url's from aws secrets, set them up to env vars and run the tests.
 - build-and-push: It depends on validate-pr job. If this passes and merges to main, will get the docker credentials from aws secrets, build a new docker image with the main code, and push it to docker hub. 
 
+### Docker
 [Dockerfile](Dockerfile): File that contains the instructions to build up a Docker Image based on my code.
 
 In this case, I could use the command:
