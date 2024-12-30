@@ -183,6 +183,16 @@ private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exop
 }
 ```
 
+### 3. Generate a timeline of planet discoveries grouped by size categories.
+
+```swift
+private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
+    guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
+    let category = SizeCategory(radius: radius)
+    return (year: year, sizes: category.sizeCount)
+}
+```
+
 ```swift
 enum SizeCategory {
     case small
@@ -215,16 +225,6 @@ enum SizeCategory {
     }
 }
 
-```
-
-### 3. Generate a timeline of planet discoveries grouped by size categories.
-
-```swift
-private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
-    guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
-    let category = SizeCategory(radius: radius)
-    return (year: year, sizes: category.sizeCount)
-}
 ```
 
 # Methodology
