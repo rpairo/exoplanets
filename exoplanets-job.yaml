@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: exoplanets-job
-spec
+spec:
   template:
     spec:
       serviceAccountName: kubernetes-user
