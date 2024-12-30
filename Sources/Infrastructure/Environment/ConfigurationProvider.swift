@@ -1,5 +1,3 @@
-import Configuration
-
 public struct ConfigurationProvider: AppConfigurationProvider {
     public init() {}
 

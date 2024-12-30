@@ -3,7 +3,6 @@ import Foundation
 import Domain
 import Infrastructure
 import Presentation
-import Configuration
 
 public struct AppComposition: ApplicationFlow {
     private let container = DIContainer.shared

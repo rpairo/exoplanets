@@ -15,11 +15,6 @@ let package = Package(
     dependencies: [],
     targets: [
         .target(
-            name: "Configuration",
-            dependencies: [],
-            path: "Sources/Configuration"
-        ),
-        .target(
             name: "Domain",
             dependencies: [],
             path: "Sources/Domain"
@@ -31,7 +26,7 @@ let package = Package(
         ),
         .target(
             name: "Infrastructure",
-            dependencies: ["Configuration", "Data"],
+            dependencies: ["Data"],
             path: "Sources/Infrastructure"
         ),
         .target(
@@ -41,17 +36,17 @@ let package = Package(
         ),
         .target(
             name: "Composition",
-            dependencies: ["Data", "Domain", "Presentation", "Infrastructure", "Configuration"],
+            dependencies: ["Data", "Domain", "Presentation", "Infrastructure"],
             path: "Sources/Composition"
         ),
         .executableTarget(
             name: "Main",
-            dependencies: ["Composition", "Configuration"],
+            dependencies: ["Composition"],
             path: "Sources/Main"
         ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure", "Configuration"],
+            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure"],
             path: "Tests"
         )
     ]
