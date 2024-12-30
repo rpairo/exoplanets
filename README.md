@@ -611,4 +611,4 @@ This is required cause Xcode does not share the OS environment variables.
 
 Product -> Scheme -> Edit Scheme -> <target>
 
-![Xcode environment variables setup](https://github.com/user-attachments/assets/d56cdfd9-3799-412d-84d3-7d88bd8cc81e)
+![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
