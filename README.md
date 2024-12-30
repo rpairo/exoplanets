@@ -312,8 +312,8 @@ Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes
 In GitHub the main branch is protected and restricted to add code only by Pull Requests.
 
 ### GitHub Actions
-This [YAML](.github/workflows/ci-cd.yaml) file defines the configuration for the GitHub Actions workflow. It includes the following two jobs:
 
+This [Pull Request Validation](.github/workflows/validate-pr.yml):
 - **`validate-pr`:**  
   This job is triggered for every pull request. It performs the following tasks:
   - Checks for conflicts within the pull request.
@@ -321,8 +321,9 @@ This [YAML](.github/workflows/ci-cd.yaml) file defines the configuration for the
   - Sets the retrieved secrets as environment variables.
   - Runs the tests to validate the pull request changes.
 
+This [Build and Deploy](.github/workflows/build-and-deploy.yml):
 - **`build-scan-and-push`:**  
-  This job depends on the successful completion of the `validate-pr` job. It is triggered when changes are merged into the main branch. This job:
+  This job it is triggered when changes are merged into the main branch:
   - Retrieves Docker credentials from AWS Secrets Manager.
   - Builds a new Docker image using the main branch code.
   - Scans the Docker image with Docker Scout to identify vulnerabilities.
@@ -347,11 +348,16 @@ In the Dockerfile, I chose to use swift:6.0.3 as the base image to ensure that a
 
 After building the executable, Docker creates a second image using swift:6.0.3-slim as the base image, which contains only the minimal dependencies required to run the executable. This approach ensures that the final image is smaller, as it includes only the built executable and the essential runtime environment.
 
-#### Docker Hub
-The built images are stored in **[Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)** for easy access and deployment.
+It created two docker images: terminal and api. These ones are the image build from the two exposed targets in the [SPM Package](Package.swift).
 
+#### Docker Hub
+The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanet-terminal) for easy access and deployment. This is an executable that targets the ExoplanetTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+
+The API built images are stored in [Exoplanet Analyer API](https://hub.docker.com/repository/docker/rpairo/exoplanet-api) for easy access. This is an executable that targets the ExoplanetAPI, exposes the API layer to provide public functions to retrieve the three expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
 ## API URL Abstraction
+
+Configuration Factory definition: [File](Sources/Infrastructure/Environment/ConfigurationFactory.swift)
 
 ```swift
 public struct ConfigurationFactory {
@@ -387,15 +393,15 @@ public struct ConfigurationFactory {
 
 To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
 
+Dependency Injector definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
+
 ```swift
 public final class DIContainer {
     public static let shared = DIContainer()
-
     private var services: [String: Any] = [:]
-
     private init() {}
 
-    func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
+    public func register<Service>(_ service: Service, for protocolType: Service.Type) throws {
         let key = String(describing: protocolType)
         if services[key] != nil {
             throw DIContainerError.dependencyAlreadyRegistered(dependency: key)
@@ -403,7 +409,7 @@ public final class DIContainer {
         services[key] = service
     }
 
-    func resolve<Service>() throws -> Service {
+    public func resolve<Service>() throws -> Service {
         let key = String(describing: Service.self)
         guard let service = services[key] as? Service else {
             throw DIContainerError.dependencyNotFound(dependency: key)
@@ -429,12 +435,12 @@ try container.register(RemoteExoplanetDataSource(client: container.resolve(), ur
 
 The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
 
-DI Example of usage: [File](Sources/Composition/Application/AppComposition.swift)
-
-DI Definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
+Dependency Injection example of usage: [File](Sources/Composition/Application/AppComposition.swift)
 
 ## Network Retry Handler
 
+
+Network Retry Handler definition: [File](Sources/Infrastructure/Network/NetworkRetryHandler.swift)
 ```swift
 public struct NetworkRetryHandler: RetryableOperation {
     private let configuration: RetryConfiguration
@@ -461,6 +467,9 @@ public struct NetworkRetryHandler: RetryableOperation {
 ```
 
 ## Clean architecture
+
+Package definition: [File](Package.swift)
+
 ```swift
 // swift-tools-version:5.9
 import PackageDescription
@@ -472,9 +481,13 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "ExoplanetAnalyzer",
-            targets: ["Main"]
+            name: "ExoplanetTerminal",
+            targets: ["ExoplanetTerminal"]
         ),
+        .executable(
+            name: "ExoplanetAPI",
+            targets: ["ExoplanetAPI"]
+        )
     ],
     targets: [
         .target(
@@ -503,9 +516,14 @@ let package = Package(
             path: "Sources/Composition"
         ),
         .executableTarget(
-            name: "Main",
-            dependencies: ["Composition"],
+            name: "ExoplanetTerminal",
+            dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
+        ),
+        .executableTarget(
+            name: "ExoplanetAPI",
+            dependencies: ["Composition", "Presentation", "Domain"],
+            path: "Sources/API"
         ),
         .testTarget(
             name: "Tests",
@@ -517,20 +535,22 @@ let package = Package(
 ```
 
 ## Composition Layer
-```swift
-public struct AppComposition: ApplicationFlow {
-    private let container = DIContainer.shared
 
+AppComposition definition: [File](Sources/Composition/Application/AppComposition.swift)
+
+```swift
+public struct AppComposition: ApplicationBuilder {
+    private let container = DIContainer.shared
     public init() {}
 
-    public func build() throws {
+    public func build() async throws {
         container.reset()
 
         try registerConfiguration()
         try registerNetworking()
         try registerDataLayer()
         try registerDomainLayer()
-        try registerPresentationLayer()
+        try await registerPresentationLayer()
     }
 
     private func registerConfiguration() throws {
@@ -569,22 +589,26 @@ public struct AppComposition: ApplicationFlow {
         try container.register(ExoplanetUseCase(repository: container.resolve()), for: ExoplanetProcessing.self)
     }
 
-    private func registerPresentationLayer() throws {
-        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
-        try container.register(TerminalExoplanetView(printer: container.resolve()), for: ExoplanetDisplaying.self)
+    private func registerPresentationLayer() async throws {
         try container.register(TimelineFormatter(), for: TimelineFormatting.self)
+        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
+        try await container.register(ExoplanetPresenter(useCases: container.resolve()), for: ExoplanetPresenting.self)
         try container.register(
-            ExoplanetPresenter(
-                useCases: container.resolve(),
-                view: container.resolve(),
-                formatter: container.resolve()),
-            for: ExoplanetPresenting.self
+            TerminalExoplanetView(
+                presenter: container.resolve(),
+                printer: container.resolve(),
+                timelineFormatter: container.resolve()),
+            for: ExoplanetDisplaying.self
         )
-    }
-
-    public func start() async throws {
-        let presenter: ExoplanetPresenting = try container.resolve()
-        _ = try await presenter.presentExoplanets()
     }
 }
 ```
+
+## Local Execution by Xcode
+To run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target.
+
+This is required cause Xcode does not share the OS environment variables.
+
+Product -> Scheme -> Edit Scheme -> <target>
+
+![Xcode environment variables setup](https://github.com/user-attachments/assets/d56cdfd9-3799-412d-84d3-7d88bd8cc81e)
