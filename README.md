@@ -232,6 +232,8 @@ In GitHub the main branch is protected and restricted to add code only by Pull R
 
 [Dockerfile](Dockerfile): File that contains the instructions to build up a Docker Image based on my code.
 
-In this case, I could use the action: 'RUN git clone https://github.com/rpairo/exoplanets.git /app' to make the image standalone, what it means you could download the full functional container from docker hub using the coordenades rpairo/exoplanets:latest. This would get the code cloning the github repository, create the container and run the app.
+In this case, I could use the action: 'RUN git clone https://github.com/rpairo/exoplanets.git /app' to make the image standalone, what it means you could download the full functional container from docker hub using the coordenades rpairo/exoplanets:latest. This would get the code cloning the github repository, create the container and run the app passing the required environment variables.
+
+However, to avoid expose the version control repository url, we can use the action: 'COPY . .' to copy the repository code that has been used in the CI/CD stage to build the Docker Image. By this way, we don't expose the repository url, but we will need to run the build image together with the code. If we try to create the container directly from the image alone, will not be able to find the code.
 
 [Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)

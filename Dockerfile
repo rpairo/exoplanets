@@ -5,7 +5,7 @@ FROM swift:6.0.3 AS build
 WORKDIR /app
 
 # Clone the repository
-RUN git clone https://github.com/rpairo/exoplanets.git /app
+COPY . .
 
 # Build the application
 RUN swift build --configuration release
