@@ -1,4 +1,4 @@
 public protocol ApplicationFlow {
-    func build() throws
-    func start() async throws
+    func build() async throws
+    func start() throws
 }

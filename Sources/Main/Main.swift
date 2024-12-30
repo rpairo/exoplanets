@@ -5,8 +5,8 @@ struct Main {
     static func main() async {
         do {
             let appComposition: ApplicationFlow = AppComposition()
-            try appComposition.build()
-            try await appComposition.start()
+            try await appComposition.build()
+            try appComposition.start()
         } catch {
             print("Error: \(error.localizedDescription)")
         }

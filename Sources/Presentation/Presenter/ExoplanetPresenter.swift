@@ -2,41 +2,31 @@ import Domain
 
 public struct ExoplanetPresenter: ExoplanetPresenting {
     private let useCase: ExoplanetProcessing
-    private let view: ExoplanetDisplaying
-    private let timelineFormatter: TimelineFormatting
+    private var result: ProcessedExoplanetResult?
 
-    public init(useCases: ExoplanetProcessing, view: ExoplanetDisplaying, formatter: TimelineFormatting) {
+    public init(useCases: ExoplanetProcessing) async throws {
         self.useCase = useCases
-        self.view = view
-        self.timelineFormatter = formatter
+
+        self.result = try await self.prepareExoplanets()
     }
 
-    public func presentExoplanets() async throws -> PresentationResult {
+    private func prepareExoplanets() async throws -> ProcessedExoplanetResult {
         do {
-            let result = try await useCase.processExoplanets()
-            updateView(with: result)
-            return .success(result)
+            return try await useCase.processExoplanets()
         } catch {
-            view.showError(error.localizedDescription)
-            return .failure(error)
+            throw error
         }
     }
 
-    private func updateView(with result: ProcessedExoplanetResult) {
-        if let orphans = result.orphanPlanets {
-            let identifiers = orphans.map { $0.planetIdentifier ?? "Unknown" }
-            view.showOrphanPlanets(orphans.count, identifiers: identifiers)
-        }
+    public func orphanPlanets() -> [Exoplanet]? {
+        self.result?.orphanPlanets
+    }
 
-        if let hottest = result.hottestStarExoplanet {
-            let identifier = hottest.planetIdentifier ?? "Unknown"
-            let temperature = hottest.hostStarTempK ?? 0
-            view.showHottestStar(identifier: identifier, temperature: temperature)
-        }
+    public func hottestStarExoplanet() -> Exoplanet? {
+        self.result?.hottestStarExoplanet
+    }
 
-        if let timeline = result.timeline {
-            let formattedTimeline = timelineFormatter.format(timeline)
-            view.showTimeline(headers: formattedTimeline.headers, separator: formattedTimeline.separator, rows: formattedTimeline.rows)
-        }
+    public func timeline() -> YearlyPlanetSizeDistribution? {
+        self.result?.timeline
     }
 }

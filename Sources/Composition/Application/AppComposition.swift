@@ -9,14 +9,14 @@ public struct AppComposition: ApplicationFlow {
 
     public init() {}
 
-    public func build() throws {
+    public func build() async throws {
         container.reset()
 
         try registerConfiguration()
         try registerNetworking()
         try registerDataLayer()
         try registerDomainLayer()
-        try registerPresentationLayer()
+        try await registerPresentationLayer()
     }
 
     private func registerConfiguration() throws {
@@ -55,22 +55,22 @@ public struct AppComposition: ApplicationFlow {
         try container.register(ExoplanetUseCase(repository: container.resolve()), for: ExoplanetProcessing.self)
     }
 
-    private func registerPresentationLayer() throws {
-        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
-        try container.register(TerminalExoplanetView(printer: container.resolve()), for: ExoplanetDisplaying.self)
+    private func registerPresentationLayer() async throws {
         try container.register(TimelineFormatter(), for: TimelineFormatting.self)
+        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
+        try await container.register(ExoplanetPresenter(useCases: container.resolve()), for: ExoplanetPresenting.self)
         try container.register(
-            ExoplanetPresenter(
-                useCases: container.resolve(),
-                view: container.resolve(),
-                formatter: container.resolve()),
-            for: ExoplanetPresenting.self
+            TerminalExoplanetView(
+                presenter: container.resolve(),
+                printer: container.resolve(),
+                timelineFormatter: container.resolve()),
+            for: ExoplanetDisplaying.self
         )
     }
 
-    public func start() async throws {
-        let presenter: ExoplanetPresenting = try container.resolve()
-        _ = try await presenter.presentExoplanets()
+    public func start() throws {
+        let terminal: ExoplanetDisplaying = try container.resolve()
+        terminal.show()
     }
 }
 
