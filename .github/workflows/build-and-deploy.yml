@@ -51,20 +51,3 @@ jobs:
         if: success()
         run: |
           docker push rpairo/exoplanet-terminal:latest
-    
-      - name: Build Docker Image for ExoplanetAPI
-        run: |
-          docker build --target api -t rpairo/exoplanet-api:latest .
-    
-      - name: Scan Docker Image for ExoplanetAPI
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: rpairo/exoplanet-api:latest
-          only-severities: critical,high
-          exit-code: true
-    
-      - name: Push Docker Image for ExoplanetAPI
-        if: success()
-        run: |
-          docker push rpairo/exoplanet-api:latest
