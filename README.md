@@ -376,7 +376,7 @@ public struct ConfigurationFactory {
             baseAPIURL: base,
             exoplanetsPathSegment: path,
             exoplanetsEndpoint: endpoint,
-            maxAttempts: apiRequestMaxAttempts,
+            apiRequestMaxAttempts: apiRequestMaxAttempts,
             delayBetweenAttempts: delayBetweenAttempts
         )
     }

@@ -37,7 +37,7 @@ public struct AppComposition: ApplicationFlow {
 
         try container.register(
             RetryConfigurationProvider(
-                maxAttempts: config.maxAttempts,
+                maxAttempts: config.apiRequestMaxAttempts,
                 delayBetweenAttempts: config.delayBetweenAttempts),
             for: RetryConfiguration.self
         )
