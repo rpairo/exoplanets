@@ -65,7 +65,7 @@ final class PlanetSizeCountTests: XCTestCase {
 
     func test_equatable_withDifferentValues_shouldNotBeEqual() {
         let sut1 = PlanetSizeCount(small: 1, medium: 2, large: 3)
-        let sut2 = PlanetSizeCount(small: 3, medium: 2, large: 1)
+        let sut2 = PlanetSizeCount(small: 3, medium: 2, large: 2)
 
         XCTAssertNotEqual(sut1, sut2)
     }
