@@ -228,12 +228,22 @@ In GitHub the main branch is protected and restricted to add code only by Pull R
 - validate-pr: Wich for any pull request will check if there is any conflict, get the url's from aws secrets, set them up to env vars and run the tests.
 - build-and-push: It depends on validate-pr job. If this passes and merges to main, will get the docker credentials from aws secrets, build a new docker image with the main code, and push it to docker hub. 
 
-[GitHub Repository](https://github.com/rpairo/exoplanets) 
-
 [Dockerfile](Dockerfile): File that contains the instructions to build up a Docker Image based on my code.
 
-In this case, I could use the action: 'RUN git clone https://github.com/rpairo/exoplanets.git /app' to make the image standalone, what it means you could download the full functional container from docker hub using the coordenades rpairo/exoplanets:latest. This would get the code cloning the github repository, create the container and run the app passing the required environment variables.
+In this case, I could use the command:
+```dockerfile
+RUN git clone <repository-url> /app
+```
+To make the image standalone. This means you could create a Docker image using just the `Dockerfile`, without requiring the codebase to be present. During the image build process, the source code would be fetched directly from code repository. However, this approach exposes the repository URL, which can raise security concerns.
 
-However, to avoid expose the version control repository url, we can use the action: 'COPY . .' to copy the repository code that has been used in the CI/CD stage to build the Docker Image. By this way, we don't expose the repository url, but we will need to run the build image together with the code. If we try to create the container directly from the image alone, will not be able to find the code.
+Alternatively, I chose to use the command:
+```dockerfile
+COPY . .
+```
+This approach ensures that the exact version of the code tested during the CI/CD process is included in the image, without exposing any repository URL.
+
+In the Dockerfile, I chose to use swift:6.0.3 as the base image to ensure that all the required dependencies for building my Swift Package Manager project are available.
+
+After building the executable, Docker creates a second image using swift:6.0.3-slim as the base image, which contains only the minimal dependencies required to run the executable. This approach ensures that the final image is smaller, as it includes only the built executable and the essential runtime environment.
 
 [Docker Hub](https://hub.docker.com/repository/docker/rpairo/exoplanets)
