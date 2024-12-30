@@ -12,7 +12,6 @@ let package = Package(
             targets: ["Main"]
         ),
     ],
-    dependencies: [],
     targets: [
         .target(
             name: "Domain",
