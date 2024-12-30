@@ -8,11 +8,11 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "Exoplanet Terminal",
+            name: "ExoplanetTerminal",
             targets: ["ExoplanetTerminal"]
         ),
         .executable(
-            name: "Exoplanet API",
+            name: "ExoplanetAPI",
             targets: ["ExoplanetAPI"]
         )
     ],

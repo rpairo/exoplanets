@@ -50,7 +50,7 @@ jobs:
 
   build-scan-and-push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Build, Scan and Push Docker Image
+    name: Build, Scan, and Push Docker Images
     runs-on: ubuntu-latest
     needs: validate-pr
 
@@ -84,19 +84,36 @@ jobs:
           username: ${{ env.USERNAME }}
           password: ${{ env.PASSWORD }}
 
-      - name: Build Docker Image
+      - name: Build Docker Image for ExoplanetTerminal
         run: |
-          docker build -t rpairo/exoplanets:latest .
+          docker build --target terminal -t rpairo/exoplanet-terminal:latest .
 
-      - name: Scan Docker Image with Docker Scout
+      - name: Scan Docker Image for ExoplanetTerminal with Docker Scout
         uses: docker/scout-action@v1
         with:
           command: cves
-          image: rpairo/exoplanets:latest
+          image: rpairo/exoplanet-terminal:latest
           only-severities: critical,high
           exit-code: true
 
-      - name: Push Docker Image
+      - name: Push Docker Image for ExoplanetTerminal
         if: success()
         run: |
-          docker push rpairo/exoplanets:latest
+          docker push rpairo/exoplanet-terminal:latest
+
+      - name: Build Docker Image for ExoplanetAPI
+        run: |
+          docker build --target api -t rpairo/exoplanet-api:latest .
+
+      - name: Scan Docker Image for ExoplanetAPI with Docker Scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: rpairo/exoplanet-api:latest
+          only-severities: critical,high
+          exit-code: true
+
+      - name: Push Docker Image for ExoplanetAPI
+        if: success()
+        run: |
+          docker push rpairo/exoplanet-api:latest
