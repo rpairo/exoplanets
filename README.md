@@ -357,6 +357,8 @@ The API built images are stored in [Exoplanet Analyer API](https://hub.docker.co
 
 ## API URL Abstraction
 
+Configuration Factory definition: [File](Sources/Infrastructure/Environment/ConfigurationFactory.swift)
+
 ```swift
 public struct ConfigurationFactory {
     static func create() throws -> AppConfiguration {
@@ -391,7 +393,7 @@ public struct ConfigurationFactory {
 
 To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
 
-DI Definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
+Dependency Injector definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
 
 ```swift
 public final class DIContainer {
@@ -433,10 +435,12 @@ try container.register(RemoteExoplanetDataSource(client: container.resolve(), ur
 
 The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
 
-DI Example of usage: [File](Sources/Composition/Application/AppComposition.swift)
+Dependency Injection example of usage: [File](Sources/Composition/Application/AppComposition.swift)
 
 ## Network Retry Handler
 
+
+Network Retry Handler definition: [File](Sources/Infrastructure/Network/NetworkRetryHandler.swift)
 ```swift
 public struct NetworkRetryHandler: RetryableOperation {
     private let configuration: RetryConfiguration
@@ -463,6 +467,9 @@ public struct NetworkRetryHandler: RetryableOperation {
 ```
 
 ## Clean architecture
+
+Package definition: [File](Package.swift)
+
 ```swift
 // swift-tools-version:5.9
 import PackageDescription
@@ -528,20 +535,22 @@ let package = Package(
 ```
 
 ## Composition Layer
-```swift
-public struct AppComposition: ApplicationFlow {
-    private let container = DIContainer.shared
 
+AppComposition definition: [File](Sources/Composition/Application/AppComposition.swift)
+
+```swift
+public struct AppComposition: ApplicationBuilder {
+    private let container = DIContainer.shared
     public init() {}
 
-    public func build() throws {
+    public func build() async throws {
         container.reset()
 
         try registerConfiguration()
         try registerNetworking()
         try registerDataLayer()
         try registerDomainLayer()
-        try registerPresentationLayer()
+        try await registerPresentationLayer()
     }
 
     private func registerConfiguration() throws {
@@ -580,22 +589,26 @@ public struct AppComposition: ApplicationFlow {
         try container.register(ExoplanetUseCase(repository: container.resolve()), for: ExoplanetProcessing.self)
     }
 
-    private func registerPresentationLayer() throws {
-        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
-        try container.register(TerminalExoplanetView(printer: container.resolve()), for: ExoplanetDisplaying.self)
+    private func registerPresentationLayer() async throws {
         try container.register(TimelineFormatter(), for: TimelineFormatting.self)
+        try container.register(TerminalMessagePrinter(), for: MessagePrinter.self)
+        try await container.register(ExoplanetPresenter(useCases: container.resolve()), for: ExoplanetPresenting.self)
         try container.register(
-            ExoplanetPresenter(
-                useCases: container.resolve(),
-                view: container.resolve(),
-                formatter: container.resolve()),
-            for: ExoplanetPresenting.self
+            TerminalExoplanetView(
+                presenter: container.resolve(),
+                printer: container.resolve(),
+                timelineFormatter: container.resolve()),
+            for: ExoplanetDisplaying.self
         )
-    }
-
-    public func start() async throws {
-        let presenter: ExoplanetPresenting = try container.resolve()
-        _ = try await presenter.presentExoplanets()
     }
 }
 ```
+
+## Local Execution by Xcode
+To run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target.
+
+This is required cause Xcode does not share the OS environment variables.
+
+Product -> Scheme -> Edit Scheme -> <target>
+
+![Xcode environment variables setup](https://github.com/user-attachments/assets/d56cdfd9-3799-412d-84d3-7d88bd8cc81e)

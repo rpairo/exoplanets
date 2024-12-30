@@ -6,7 +6,6 @@ import Presentation
 
 public struct AppComposition: ApplicationBuilder {
     private let container = DIContainer.shared
-
     public init() {}
 
     public func build() async throws {
