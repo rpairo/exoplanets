@@ -11,7 +11,7 @@ let package = Package(
             name: "ExoplanetTerminal",
             targets: ["ExoplanetTerminal"]
         ),
-        .executable(
+        .library(
             name: "ExoplanetAPI",
             targets: ["ExoplanetAPI"]
         )
@@ -42,15 +42,15 @@ let package = Package(
             dependencies: ["Data", "Domain", "Presentation", "Infrastructure"],
             path: "Sources/Composition"
         ),
+        .target(
+            name: "ExoplanetAPI",
+            dependencies: ["Composition", "Presentation", "Domain"],
+            path: "Sources/API"
+        ),
         .executableTarget(
             name: "ExoplanetTerminal",
             dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
-        ),
-        .executableTarget(
-            name: "ExoplanetAPI",
-            dependencies: ["Composition", "Presentation", "Domain"],
-            path: "Sources/API"
         ),
         .testTarget(
             name: "Tests",

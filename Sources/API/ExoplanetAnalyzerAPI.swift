@@ -32,33 +32,27 @@ public struct PlanetSizeCountDTO: Codable, Equatable {
     }
 }
 
-@main
 public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
-    private static var presenter: ExoplanetPresenting?
+    private var presenter: ExoplanetPresenting?
 
-    public static func main() async {
-        do {
-            let appComposition = AppComposition()
-            try await appComposition.build()
-            self.presenter = try DIContainer.shared.resolve()
-            print("ExoplanetAnalyzerAPI is ready for use.")
-        } catch {
-            print("Error: \(error.localizedDescription)")
-        }
+    public init() async throws {
+        let appComposition = AppComposition()
+        try await appComposition.build()
+        self.presenter = try DIContainer.shared.resolve()
     }
 
     public func getOrphanPlanets() -> [ExoplanetDTO]? {
-        guard let planets = Self.presenter?.orphanPlanets() else { return nil }
+        guard let planets = presenter?.orphanPlanets() else { return nil }
         return planets.map { ExoplanetMapper.toDTO(from: $0) }
     }
 
     public func getHottestStarExoplanet() -> ExoplanetDTO? {
-        guard let exoplanet = Self.presenter?.hottestStarExoplanet() else { return nil }
+        guard let exoplanet = presenter?.hottestStarExoplanet() else { return nil }
         return ExoplanetMapper.toDTO(from: exoplanet)
     }
 
     public func getDiscoveryTimeline() -> YearlyPlanetSizeDistributionDTO? {
-        guard let timeline = Self.presenter?.timeline() else { return nil }
+        guard let timeline = presenter?.timeline() else { return nil }
         return timeline.reduce(into: [:]) { result, planetSizeCount in
             result[planetSizeCount.key] = PlanetSizeCountDTO.from(domain: planetSizeCount.value)
         }
