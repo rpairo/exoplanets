@@ -8,9 +8,13 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "ExoplanetAnalyzer",
-            targets: ["Main"]
+            name: "Exoplanet Terminal",
+            targets: ["ExoplanetTerminal"]
         ),
+        .executable(
+            name: "Exoplanet API",
+            targets: ["ExoplanetAPI"]
+        )
     ],
     targets: [
         .target(
@@ -39,9 +43,14 @@ let package = Package(
             path: "Sources/Composition"
         ),
         .executableTarget(
-            name: "Main",
+            name: "ExoplanetTerminal",
             dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
+        ),
+        .executableTarget(
+            name: "ExoplanetAPI",
+            dependencies: ["Composition", "Presentation", "Domain"],
+            path: "Sources/API"
         ),
         .testTarget(
             name: "Tests",

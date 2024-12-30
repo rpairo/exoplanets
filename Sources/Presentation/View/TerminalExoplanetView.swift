@@ -7,8 +7,6 @@ public struct TerminalExoplanetView: ExoplanetDisplaying {
         self.presenter = presenter
         self.printer = printer
         self.timelineFormatter = timelineFormatter
-
-        show()
     }
 
     public func show() {
