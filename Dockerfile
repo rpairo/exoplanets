@@ -19,8 +19,5 @@ WORKDIR /app
 # Copy the built executable from the previous stage
 COPY --from=build /app/.build/release/ExoplanetAnalyzer /app/ExoplanetAnalyzer
 
-# Set a default environment variable
-ENV APP_ENV=production
-
 # Default command to run the application
 CMD ["./ExoplanetAnalyzer"]
