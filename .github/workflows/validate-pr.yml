@@ -20,10 +20,6 @@ jobs:
     # Skip this job if the PR is a draft
     if: ${{ github.event.pull_request.draft == false }}
 
-    strategy:
-      matrix:
-        swift-version: [ "6.0.3", "latest" ]
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -52,24 +48,26 @@ jobs:
           echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
           echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
 
-      # Optional lint step (placeholder)
+      # Optional lint step (example: SwiftLint)
       - name: Lint code (placeholder for SwiftLint)
-        uses: docker://swift:${{ matrix.swift-version }}
+        uses: docker://swift:6.0.3
         with:
+          # If SwiftLint is not installed by default in swift:6.0.3,
+          # you'd need to install it or use a custom image that includes it.
           args: swiftlint
 
-      # Run Swift tests
       - name: Run Swift Tests
-        uses: docker://swift:${{ matrix.swift-version }}
+        uses: docker://swift:6.0.3
         env:
           BASE_API_URL: ${{ env.BASE_URL }}
           PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
           ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
+          # Use "--enable-code-coverage" if you want coverage data
           args: swift test
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: test-reports-${{ matrix.swift-version }}
+          name: test-reports
           path: .build

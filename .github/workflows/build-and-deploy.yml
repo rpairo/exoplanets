@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write   # Needed if pushing Docker images (or GH Packages)
+  packages: write   # Needed if pushing Docker images (or GitHub Packages)
 
 concurrency:
   group: build-and-deploy
@@ -15,19 +15,16 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------
-  # 1) Test Job: Lint + Test on Multiple Swift Versions
+  # 1) Test Job (Lint + Test with Swift 6.0.3)
   # ---------------------------------------------------------------
   test-code:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        swift-version: [ "6.0.3", "latest" ]
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      # Retrieve secrets from AWS (for example, production secrets)
+      # Retrieve secrets from AWS (e.g., production)
       - name: Retrieve API Secrets from AWS
         id: retrieve-api-secrets
         env:
@@ -48,31 +45,33 @@ jobs:
           echo "::add-mask::$PATH_SEGMENT"
           echo "::add-mask::$ENDPOINT_EXOPLANETS"
 
-          # Expose them to later steps in this job
           echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
           echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
           echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
 
+      # Optional lint step
       - name: Lint code (placeholder for SwiftLint)
-        uses: docker://swift:${{ matrix.swift-version }}
+        uses: docker://swift:6.0.3
         with:
-          # If SwiftLint is not installed in the swift image,
-          # you may need to install it or build your own Docker image containing swiftlint.
+          # If SwiftLint is not installed in the default image,
+          # you'd need to install it:
+          #   apt-get update && apt-get install -y swiftlint
           args: swiftlint
 
       - name: Run Swift Tests
-        uses: docker://swift:${{ matrix.swift-version }}
+        uses: docker://swift:6.0.3
         env:
           BASE_API_URL: ${{ env.BASE_URL }}
           PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
           ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
+          # Enable coverage if needed: "swift test --enable-code-coverage"
           args: swift test
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: test-reports-${{ matrix.swift-version }}
+          name: test-reports
           path: .build
 
   # ---------------------------------------------------------------
@@ -98,7 +97,7 @@ jobs:
             --secret-id docker-credentials \
             --query SecretString \
             --output text)
-          
+
           DOCKER_USER=$(echo "$docker_secrets" | jq -r '.USERNAME')
           DOCKER_PASS=$(echo "$docker_secrets" | jq -r '.PASSWORD')
 
@@ -137,5 +136,4 @@ jobs:
       # 3) Push the image to Docker Hub if scan passed
       - name: Push Docker Image
         if: success()
-        run: |
-          docker push rpairo/exoplanet-terminal:latest
+        run: docker push rpairo/exoplanet-terminal:latest
