@@ -1,21 +1,21 @@
 @_exported import Domain
 
 public struct PlanetSizeCountDTO: Codable, Equatable {
-    public let smallPlanets: Int
-    public let mediumPlanets: Int
-    public let largePlanets: Int
+    public let small: Int
+    public let medium: Int
+    public let large: Int
 
-    public init(smallPlanets: Int, mediumPlanets: Int, largePlanets: Int) {
-        self.smallPlanets = smallPlanets
-        self.mediumPlanets = mediumPlanets
-        self.largePlanets = largePlanets
+    public init(small: Int, medium: Int, large: Int) {
+        self.small = small
+        self.medium = medium
+        self.large = large
     }
 
     public static func from(domain: PlanetSizeCount) -> PlanetSizeCountDTO {
         return PlanetSizeCountDTO(
-            smallPlanets: domain.small,
-            mediumPlanets: domain.medium,
-            largePlanets: domain.large
+            small: domain.small,
+            medium: domain.medium,
+            large: domain.large
         )
     }
 }
