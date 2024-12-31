@@ -36,10 +36,10 @@ jobs:
           echo "::add-mask::$PATH_SEGMENT"
           echo "::add-mask::$ENDPOINT_EXOPLANETS"
 
-          # We set outputs so the consumer job can retrieve these values
-          echo "::set-output name=base_url::$BASE_URL"
-          echo "::set-output name=path_segment::$PATH_SEGMENT"
-          echo "::set-output name=endpoint_exoplanets::$ENDPOINT_EXOPLANETS"
+          # Write job outputs via $GITHUB_OUTPUT (new approach)
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+          echo "path_segment=$PATH_SEGMENT" >> "$GITHUB_OUTPUT"
+          echo "endpoint_exoplanets=$ENDPOINT_EXOPLANETS" >> "$GITHUB_OUTPUT"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

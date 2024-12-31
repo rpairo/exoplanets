@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 1) Fetch Exoplanet URLs from AWS
+  # 1) Fetch Exoplanet URLs
   fetch-urls:
     uses: ./.github/workflows/fetch-exoplanets-urls.yml
     secrets:
@@ -21,7 +21,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
 
-  # 2) Validate PR: Lint + Test
+  # 2) Validate the PR (lint + test)
   validate-pr:
     if: ${{ github.event.pull_request.draft == false }}
     needs: fetch-urls

@@ -31,7 +31,7 @@ jobs:
       path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
       endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}
 
-  # 3) Fetch Docker Credentials
+  # 3) Fetch Docker credentials
   fetch-docker-creds:
     uses: ./.github/workflows/fetch-docker-credentials.yml
     secrets:
@@ -51,11 +51,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      # Docker creds are stored in environment variables from the fetch-docker-credentials job?
-      # Actually, job-level environment variables do not automatically carry over.
-      # So typically you'd also need outputs for docker_user, docker_pass if you want them here.
-      # But for brevity, let's do it inline:
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -72,7 +67,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan Docker Image for ExoplanetTerminal
+      - name: Scan Docker Image
         uses: docker/scout-action@v1
         with:
           command: cves
