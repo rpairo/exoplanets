@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write   # Needed for Docker push or GH Packages
+  packages: write
 
 concurrency:
   group: build-and-deploy
@@ -55,16 +55,16 @@ jobs:
       - name: Build Docker Image for ExoplanetTerminal
         run: |
           docker build -t rpairo/exoplanet-terminal:latest .
-    
+      
       - name: Scan Docker Image for ExoplanetTerminal
         uses: docker/scout-action@v1
         with:
           command: cves
-          image: rpairo/exoplanets-terminal:latest
+          image: rpairo/exoplanet-terminal:latest
           only-severities: critical,high
           exit-code: true
-    
+      
       - name: Push Docker Image for ExoplanetTerminal
         if: success()
         run: |
-          docker push rpairo/exoplanets-terminal:latest
+          docker push rpairo/exoplanet-terminal:latest
