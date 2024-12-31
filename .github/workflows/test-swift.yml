@@ -29,10 +29,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Lint code (placeholder for SwiftLint)
+      - name: Lint code (install + run SwiftLint)
         uses: docker://swift:6.0.3
         with:
-          args: swiftlint
+          args: |
+            bash -c "apt-get update &&
+                     apt-get install -y swiftlint &&
+                     swiftlint"
 
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
