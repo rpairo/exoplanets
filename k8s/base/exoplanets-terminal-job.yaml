@@ -2,14 +2,23 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: exoplanets-job
+  labels:
+    app: exoplanets
 spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
   template:
     metadata:
       name: exoplanets-job
+      labels:
+        app: exoplanets
     spec:
+      restartPolicy: Never
       containers:
         - name: exoplanets
           image: rpairo/exoplanet-terminal:latest
+          imagePullPolicy: IfNotPresent
           command: ["./ExoplanetTerminal"]
           env:
             - name: BASE_URL
@@ -27,5 +36,10 @@ spec:
                 secretKeyRef:
                   name: exoplanets-local-secrets
                   key: ENDPOINT_EXOPLANETS
-      restartPolicy: Never
-  backoffLimit: 0
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
