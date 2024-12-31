@@ -13,18 +13,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # 1) Fetch Exoplanet URLs from AWS
+  fetch-urls:
+    uses: ./.github/workflows/fetch-exoplanets-urls.yml
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  # 2) Validate PR: Lint + Test
   validate-pr:
-    name: Validate PR
-    runs-on: ubuntu-latest
-
-    # Skip this job if the PR is a draft
     if: ${{ github.event.pull_request.draft == false }}
+    needs: fetch-urls
+    uses: ./.github/workflows/test-swift.yml
 
-    steps:
-      - name: Run Reusable Swift Tests
-        uses: ./.github/workflows/test-swift.yml@main
-        # Provide the AWS secrets needed by the reusable workflow
-        secrets:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+    with:
+      base_url: ${{ needs.fetch-urls.outputs.base_url }}
+      path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
+      endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}

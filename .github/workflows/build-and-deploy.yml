@@ -7,68 +7,61 @@ on:
 
 permissions:
   contents: read
-  packages: write   # Needed if pushing Docker images (or GitHub Packages)
+  packages: write
 
 concurrency:
   group: build-and-deploy
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------
-  # 1) Test Code using the Reusable Workflow
-  # ---------------------------------------------------------------
+  # 1) Fetch Exoplanet URLs
+  fetch-urls:
+    uses: ./.github/workflows/fetch-exoplanets-urls.yml
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  # 2) Test Code
   test-code:
-    name: Test Code
-    runs-on: ubuntu-latest
+    needs: fetch-urls
+    uses: ./.github/workflows/test-swift.yml
+    with:
+      base_url: ${{ needs.fetch-urls.outputs.base_url }}
+      path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
+      endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}
 
-    steps:
-      - name: Run Reusable Swift Tests
-        uses: ./.github/workflows/test-swift.yml@main
-        secrets:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+  # 3) Fetch Docker Credentials
+  fetch-docker-creds:
+    uses: ./.github/workflows/fetch-docker-credentials.yml
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
-  # ---------------------------------------------------------------
-  # 2) Build-and-Push Job: depends on test-code
-  # ---------------------------------------------------------------
+  # 4) Build, Scan, and Push
   build-scan-and-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest
-    needs: test-code
+    needs:
+      - test-code
+      - fetch-docker-creds
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Retrieve Docker Hub credentials from AWS
-        id: retrieve-docker-secrets
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          docker_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id docker-credentials \
-            --query SecretString \
-            --output text)
-
-          DOCKER_USER=$(echo "$docker_secrets" | jq -r '.USERNAME')
-          DOCKER_PASS=$(echo "$docker_secrets" | jq -r '.PASSWORD')
-
-          echo "::add-mask::$DOCKER_USER"
-          echo "::add-mask::$DOCKER_PASS"
-
-          echo "DOCKER_USERNAME=$DOCKER_USER" >> $GITHUB_ENV
-          echo "DOCKER_PASSWORD=$DOCKER_PASS" >> $GITHUB_ENV
+      # Docker creds are stored in environment variables from the fetch-docker-credentials job?
+      # Actually, job-level environment variables do not automatically carry over.
+      # So typically you'd also need outputs for docker_user, docker_pass if you want them here.
+      # But for brevity, let's do it inline:
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
+          username: ${{ needs.fetch-docker-creds.outputs.docker_username }}
+          password: ${{ needs.fetch-docker-creds.outputs.docker_password }}
 
-      # 1) Build the Docker image (no push yet)
       - name: Build Docker Image (no push)
         uses: docker/build-push-action@v3
         with:
@@ -79,7 +72,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 2) Scan the image with Docker Scout
       - name: Scan Docker Image for ExoplanetTerminal
         uses: docker/scout-action@v1
         with:
@@ -88,7 +80,6 @@ jobs:
           only-severities: critical,high
           exit-code: true
 
-      # 3) Push the image to Docker Hub if scan passed
       - name: Push Docker Image
         if: success()
         run: docker push rpairo/exoplanet-terminal:latest

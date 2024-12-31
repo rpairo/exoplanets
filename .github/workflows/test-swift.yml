@@ -2,66 +2,45 @@ name: Reusable Swift Test
 
 on:
   workflow_call:
-    # Optionally require secrets or inputs
+    inputs:
+      base_url:
+        type: string
+        required: true
+      path_segment:
+        type: string
+        required: true
+      endpoint_exoplanets:
+        type: string
+        required: true
     secrets:
+      # If you need AWS inside this test, define secrets here. Otherwise omit.
       AWS_ACCESS_KEY_ID:
-        required: true
+        required: false
       AWS_SECRET_ACCESS_KEY:
-        required: true
+        required: false
       AWS_REGION:
-        required: true
-    # If you want to pass in a secret ID or other parameters, you could define inputs like:
-    # inputs:
-    #   secret-id:
-    #     required: true
+        required: false
 
 jobs:
   swift-test-job:
-    name: Swift Test Job
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Retrieve API Secrets from AWS
-        run: |
-          api_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id exoplanets-analyzer-api-url-test \
-            --query SecretString \
-            --output text)
-
-          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
-          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
-          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
-
-          echo "::add-mask::$BASE_URL"
-          echo "::add-mask::$PATH_SEGMENT"
-          echo "::add-mask::$ENDPOINT_EXOPLANETS"
-
-          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
       - name: Lint code (placeholder for SwiftLint)
         uses: docker://swift:6.0.3
         with:
-          # If SwiftLint is not installed by default, you need to install it
-          # or use a custom Docker image that includes it.
           args: swiftlint
 
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
         env:
-          BASE_API_URL: ${{ env.BASE_URL }}
-          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
-          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
+          BASE_API_URL: ${{ inputs.base_url }}
+          PATH_SEGMENT: ${{ inputs.path_segment }}
+          ENDPOINT_EXOPLANETS: ${{ inputs.endpoint_exoplanets }}
         with:
-          # Add "--enable-code-coverage" if you need coverage
           args: swift test
 
       - name: Upload test artifacts
