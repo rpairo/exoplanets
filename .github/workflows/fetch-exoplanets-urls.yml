@@ -36,6 +36,10 @@ jobs:
           PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
           ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
 
+          echo $BASE_URL
+          echo $PATH_SEGMENT"
+          echo $ENDPOINT_EXOPLANETS"
+
           echo "::add-mask::$BASE_URL"
           echo "::add-mask::$PATH_SEGMENT"
           echo "::add-mask::$ENDPOINT_EXOPLANETS"
