@@ -7,60 +7,113 @@ on:
 
 permissions:
   contents: read
-  packages: write   # Necesario si se empujan imágenes Docker
+  packages: write   # Needed if pushing Docker images (or GitHub Packages)
 
 concurrency:
   group: build-and-deploy
   cancel-in-progress: true
 
 jobs:
-  # 1) Fetch Exoplanet URLs
-  fetch-urls:
-    uses: ./.github/workflows/fetch-exoplanets-urls.yml
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
-  # 2) Test Code
+  # ---------------------------------------------------------------
+  # 1) Test Job (Lint + Test with Swift 6.0.3)
+  # ---------------------------------------------------------------
   test-code:
-    uses: ./.github/workflows/test-swift.yml
-    needs: fetch-urls
-    with:
-      base_url: ${{ needs.fetch-urls.outputs.base_url }}
-      path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
-      endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
-  # 3) Fetch Docker credentials
-  fetch-docker-creds:
-    uses: ./.github/workflows/fetch-docker-credentials.yml
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
-  # 4) Build, Scan, and Push Docker Image
-  build-scan-and-push:
-    name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest
-    needs:
-      - test-code
-      - fetch-docker-creds
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      # Retrieve secrets from AWS (e.g., production)
+      - name: Retrieve API Secrets from AWS
+        id: retrieve-api-secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          api_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id exoplanets-analyzer-api-url-prod \
+            --query SecretString \
+            --output text)
+
+          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
+          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
+          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
+
+          echo "::add-mask::$BASE_URL"
+          echo "::add-mask::$PATH_SEGMENT"
+          echo "::add-mask::$ENDPOINT_EXOPLANETS"
+
+          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
+
+      # Optional lint step
+      - name: Lint code (placeholder for SwiftLint)
+        uses: docker://swift:6.0.3
+        with:
+          # If SwiftLint is not installed in the default image,
+          # you'd need to install it:
+          #   apt-get update && apt-get install -y swiftlint
+          args: swiftlint
+
+      - name: Run Swift Tests
+        uses: docker://swift:6.0.3
+        env:
+          BASE_API_URL: ${{ env.BASE_URL }}
+          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
+        with:
+          # Enable coverage if needed: "swift test --enable-code-coverage"
+          args: swift test
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: .build
+
+  # ---------------------------------------------------------------
+  # 2) Build-and-Push Job: depends on test-code
+  # ---------------------------------------------------------------
+  build-scan-and-push:
+    name: Build, Scan, and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test-code
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Retrieve Docker Hub credentials from AWS
+        id: retrieve-docker-secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          docker_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id docker-credentials \
+            --query SecretString \
+            --output text)
+
+          DOCKER_USER=$(echo "$docker_secrets" | jq -r '.USERNAME')
+          DOCKER_PASS=$(echo "$docker_secrets" | jq -r '.PASSWORD')
+
+          echo "::add-mask::$DOCKER_USER"
+          echo "::add-mask::$DOCKER_PASS"
+
+          echo "DOCKER_USERNAME=$DOCKER_USER" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=$DOCKER_PASS" >> $GITHUB_ENV
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ needs.fetch-docker-creds.outputs.docker_username }}
-          password: ${{ needs.fetch-docker-creds.outputs.docker_password }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
+      # 1) Build the Docker image (no push yet)
       - name: Build Docker Image (no push)
         uses: docker/build-push-action@v3
         with:
@@ -71,7 +124,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan Docker Image
+      # 2) Scan the image with Docker Scout
+      - name: Scan Docker Image for ExoplanetTerminal
         uses: docker/scout-action@v1
         with:
           command: cves
@@ -79,6 +133,7 @@ jobs:
           only-severities: critical,high
           exit-code: true
 
+      # 3) Push the image to Docker Hub if scan passed
       - name: Push Docker Image
         if: success()
         run: docker push rpairo/exoplanet-terminal:latest
