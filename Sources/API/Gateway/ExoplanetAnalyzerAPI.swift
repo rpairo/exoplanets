@@ -1,7 +1,6 @@
-import Foundation
-import Presentation
-import Composition
-import Domain
+@_exported import Presentation
+@_exported import Composition
+@_exported import Domain
 
 public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
     private var presenter: ExoplanetPresenting

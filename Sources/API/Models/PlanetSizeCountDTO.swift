@@ -1,4 +1,4 @@
-import Domain
+@_exported import Domain
 
 public struct PlanetSizeCountDTO: Codable, Equatable {
     public let smallPlanets: Int
