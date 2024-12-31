@@ -24,6 +24,12 @@ jobs:
   swift-test-job:
     runs-on: ubuntu-latest
 
+    # Definir variables de entorno a nivel de job
+    env:
+      BASE_URL: ${{ inputs.base_url }}
+      PATH_SEGMENT: ${{ inputs.path_segment }}
+      ENDPOINT_EXOPLANETS: ${{ inputs.endpoint_exoplanets }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -31,9 +37,9 @@ jobs:
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
         env:
-          BASE_URL: ${{ inputs.base_url }}
-          PATH_SEGMENT: ${{ inputs.path_segment }}
-          ENDPOINT_EXOPLANETS: ${{ inputs.endpoint_exoplanets }}
+          BASE_URL: ${{ env.BASE_URL }}
+          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
           args: swift test
 

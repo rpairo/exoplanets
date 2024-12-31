@@ -26,7 +26,6 @@ jobs:
     if: ${{ github.event.pull_request.draft == false }}
     needs: fetch-urls
     uses: ./.github/workflows/test-swift.yml
-
     with:
       base_url: ${{ needs.fetch-urls.outputs.base_url }}
       path_segment: ${{ needs.fetch-urls.outputs.path_segment }}

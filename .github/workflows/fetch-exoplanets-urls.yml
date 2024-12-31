@@ -15,13 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      base_url: ${{ steps.fetch-urls.outputs.base_url }}
-      path_segment: ${{ steps.fetch-urls.outputs.path_segment }}
-      endpoint_exoplanets: ${{ steps.fetch-urls.outputs.endpoint_exoplanets }}
+      base_url: ${{ steps.set-urls.outputs.base_url }}
+      path_segment: ${{ steps.set-urls.outputs.path_segment }}
+      endpoint_exoplanets: ${{ steps.set-urls.outputs.endpoint_exoplanets }}
 
     steps:
       - name: Retrieve Exoplanets URLs
-        id: fetch-urls
+        id: set-urls
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           api_secrets=$(aws secretsmanager get-secret-value \
             --secret-id exoplanets-analyzer-api-url-test \
@@ -36,11 +40,12 @@ jobs:
           echo "::add-mask::$PATH_SEGMENT"
           echo "::add-mask::$ENDPOINT_EXOPLANETS"
 
-          # Write job outputs via $GITHUB_OUTPUT (new approach)
+          # Exportar variables al entorno del job
+          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
+
+          # Definir outputs para otros jobs
           echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
           echo "path_segment=$PATH_SEGMENT" >> "$GITHUB_OUTPUT"
           echo "endpoint_exoplanets=$ENDPOINT_EXOPLANETS" >> "$GITHUB_OUTPUT"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
