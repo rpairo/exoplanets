@@ -24,12 +24,16 @@ jobs:
 
   # 2) Test Code
   test-code:
-    needs: fetch-urls
     uses: ./.github/workflows/test-swift.yml
+    needs: fetch-urls
     with:
       base_url: ${{ needs.fetch-urls.outputs.base_url }}
       path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
       endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
   # 3) Fetch Docker credentials
   fetch-docker-creds:
@@ -39,7 +43,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
 
-  # 4) Build, Scan, and Push
+  # 4) Build, Scan, and Push Docker Image
   build-scan-and-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest

@@ -23,10 +23,15 @@ jobs:
 
   # 2) Validate the PR (lint + test)
   validate-pr:
-    if: ${{ github.event.pull_request.draft == false }}
+    name: Validate PR
+    runs-on: ubuntu-latest
     needs: fetch-urls
-    uses: ./.github/workflows/test-swift.yml
-    with:
-      base_url: ${{ needs.fetch-urls.outputs.base_url }}
-      path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
-      endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}
+    if: ${{ github.event.pull_request.draft == false }}
+
+    steps:
+      - name: Call Reusable Swift Test Workflow
+        uses: ./.github/workflows/test-swift.yml
+        with:
+          base_url: ${{ needs.fetch-urls.outputs.base_url }}
+          path_segment: ${{ needs.fetch-urls.outputs.path_segment }}
+          endpoint_exoplanets: ${{ needs.fetch-urls.outputs.endpoint_exoplanets }}

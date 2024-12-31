@@ -30,16 +30,16 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "BASE_URL=${{ inputs.base_url }}"
-          echo "PATH_SEGMENT=${{ inputs.path_segment }}"
-          echo "ENDPOINT_EXOPLANETS=${{ inputs.endpoint_exoplanets }}"
+          echo "BASE_URL=${{ inputs.base_url }}" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=${{ inputs.path_segment }}" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=${{ inputs.endpoint_exoplanets }}" >> $GITHUB_ENV
 
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
         env:
-          BASE_URL: ${{ inputs.base_url }}
-          PATH_SEGMENT: ${{ inputs.path_segment }}
-          ENDPOINT_EXOPLANETS: ${{ inputs.endpoint_exoplanets }}
+          BASE_URL: ${{ env.BASE_URL }}
+          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
           args: swift test
 
