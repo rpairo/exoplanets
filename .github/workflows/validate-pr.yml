@@ -14,60 +14,12 @@ concurrency:
 
 jobs:
   validate-pr:
-    name: Validate PR
-    runs-on: ubuntu-latest
-
-    # Skip this job if the PR is a draft
+    # Skip this job if the PR is still a draft
     if: ${{ github.event.pull_request.draft == false }}
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      - name: Retrieve API Secrets from AWS
-        id: retrieve-api-secrets
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          api_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id exoplanets-analyzer-api-url-test \
-            --query SecretString \
-            --output text)
-
-          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
-          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
-          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
-
-          echo "::add-mask::$BASE_URL"
-          echo "::add-mask::$PATH_SEGMENT"
-          echo "::add-mask::$ENDPOINT_EXOPLANETS"
-
-          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
-
-      # Optional lint step (example: SwiftLint)
-      - name: Lint code (placeholder for SwiftLint)
-        uses: docker://swift:6.0.3
-        with:
-          # If SwiftLint is not installed by default in swift:6.0.3,
-          # you'd need to install it or use a custom image that includes it.
-          args: swiftlint
-
-      - name: Run Swift Tests
-        uses: docker://swift:6.0.3
-        env:
-          BASE_API_URL: ${{ env.BASE_URL }}
-          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
-          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
-        with:
-          # Use "--enable-code-coverage" if you want coverage data
-          args: swift test
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-reports
-          path: .build
+    # Instead of "runs-on" and "steps", we use "uses" to call the reusable workflow
+    uses: ./.github/workflows/test-swift.yml
+    # We must place "secrets:" at the job level
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}

@@ -7,76 +7,22 @@ on:
 
 permissions:
   contents: read
-  packages: write   # Needed if pushing Docker images (or GitHub Packages)
+  packages: write   # Needed for Docker push or GH Packages
 
 concurrency:
   group: build-and-deploy
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------
-  # 1) Test Job (Lint + Test with Swift 6.0.3)
-  # ---------------------------------------------------------------
+  # 1) Test Code with the reusable workflow
   test-code:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/test-swift.yml
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      # Retrieve secrets from AWS (e.g., production)
-      - name: Retrieve API Secrets from AWS
-        id: retrieve-api-secrets
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          api_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id exoplanets-analyzer-api-url-prod \
-            --query SecretString \
-            --output text)
-
-          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
-          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
-          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
-
-          echo "::add-mask::$BASE_URL"
-          echo "::add-mask::$PATH_SEGMENT"
-          echo "::add-mask::$ENDPOINT_EXOPLANETS"
-
-          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
-
-      # Optional lint step
-      - name: Lint code (placeholder for SwiftLint)
-        uses: docker://swift:6.0.3
-        with:
-          # If SwiftLint is not installed in the default image,
-          # you'd need to install it:
-          #   apt-get update && apt-get install -y swiftlint
-          args: swiftlint
-
-      - name: Run Swift Tests
-        uses: docker://swift:6.0.3
-        env:
-          BASE_API_URL: ${{ env.BASE_URL }}
-          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
-          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
-        with:
-          # Enable coverage if needed: "swift test --enable-code-coverage"
-          args: swift test
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-reports
-          path: .build
-
-  # ---------------------------------------------------------------
-  # 2) Build-and-Push Job: depends on test-code
-  # ---------------------------------------------------------------
+  # 2) Build, Scan, and Push - waits for tests
   build-scan-and-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest
@@ -113,7 +59,6 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      # 1) Build the Docker image (no push yet)
       - name: Build Docker Image (no push)
         uses: docker/build-push-action@v3
         with:
@@ -124,7 +69,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 2) Scan the image with Docker Scout
       - name: Scan Docker Image for ExoplanetTerminal
         uses: docker/scout-action@v1
         with:
@@ -133,7 +77,6 @@ jobs:
           only-severities: critical,high
           exit-code: true
 
-      # 3) Push the image to Docker Hub if scan passed
       - name: Push Docker Image
         if: success()
         run: docker push rpairo/exoplanet-terminal:latest
