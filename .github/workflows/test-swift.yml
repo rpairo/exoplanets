@@ -28,10 +28,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      # -------------------------
+      # OPTIONAL: Install + Run SwiftLint
+      # -------------------------
+      - name: Lint code (SwiftLint on-the-fly)
+        uses: docker://swift:6.0.3
+        with:
+          args: |
+            bash -c "
+              apt-get update &&
+              apt-get install -y wget &&
+              wget https://github.com/realm/SwiftLint/releases/download/0.51.0/swiftlint_0.51.0_amd64.deb &&
+              dpkg -i swiftlint_0.51.0_amd64.deb || apt-get install -fy &&
+              swiftlint
+            "
+
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
         env:
-          BASE_API_URL: ${{ inputs.base_url }}
+          BASE_URL: ${{ inputs.base_url }}
           PATH_SEGMENT: ${{ inputs.path_segment }}
           ENDPOINT_EXOPLANETS: ${{ inputs.endpoint_exoplanets }}
         with:
