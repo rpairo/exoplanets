@@ -52,7 +52,7 @@ jobs:
           echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
           echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
 
-      # Optional lint step
+      # Optional lint step (placeholder)
       - name: Lint code (placeholder for SwiftLint)
         uses: docker://swift:${{ matrix.swift-version }}
         with:

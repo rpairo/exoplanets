@@ -6,7 +6,6 @@ on:
       - main
 
 permissions:
-  # Minimal necessary permissions
   contents: read
   packages: write   # Needed if pushing Docker images (or GH Packages)
 
@@ -20,7 +19,6 @@ jobs:
   # ---------------------------------------------------------------
   test-code:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         swift-version: [ "6.0.3", "latest" ]
@@ -29,18 +27,46 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      # Retrieve secrets from AWS (for example, production secrets)
+      - name: Retrieve API Secrets from AWS
+        id: retrieve-api-secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          api_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id exoplanets-analyzer-api-url-prod \
+            --query SecretString \
+            --output text)
+
+          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
+          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
+          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
+
+          echo "::add-mask::$BASE_URL"
+          echo "::add-mask::$PATH_SEGMENT"
+          echo "::add-mask::$ENDPOINT_EXOPLANETS"
+
+          # Expose them to later steps in this job
+          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
+
       - name: Lint code (placeholder for SwiftLint)
         uses: docker://swift:${{ matrix.swift-version }}
         with:
-          # If swiftlint is not available, you need to install it:
-          # e.g., apt-get update && apt-get install -y swiftlint
-          # or build your own Docker image containing swiftlint
+          # If SwiftLint is not installed in the swift image,
+          # you may need to install it or build your own Docker image containing swiftlint.
           args: swiftlint
 
       - name: Run Swift Tests
         uses: docker://swift:${{ matrix.swift-version }}
+        env:
+          BASE_API_URL: ${{ env.BASE_URL }}
+          PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
+          ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
-          # Enable coverage if you need: swift test --enable-code-coverage
           args: swift test
 
       - name: Upload test artifacts
