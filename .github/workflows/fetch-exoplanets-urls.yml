@@ -40,11 +40,6 @@ jobs:
           echo "::add-mask::$PATH_SEGMENT"
           echo "::add-mask::$ENDPOINT_EXOPLANETS"
 
-          # Exportar variables al entorno del job
-          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
-
           # Definir outputs para otros jobs
           echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
           echo "path_segment=$PATH_SEGMENT" >> "$GITHUB_OUTPUT"
