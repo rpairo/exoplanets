@@ -5,17 +5,64 @@ on:
     branches:
       - main
 
+permissions:
+  # Minimal necessary permissions
+  contents: read
+  packages: write   # Needed if pushing Docker images (or GH Packages)
+
+concurrency:
+  group: build-and-deploy
+  cancel-in-progress: true
+
 jobs:
-  build-scan-and-push:
-    name: Build, Scan, and Push Docker Images
+  # ---------------------------------------------------------------
+  # 1) Test Job: Lint + Test on Multiple Swift Versions
+  # ---------------------------------------------------------------
+  test-code:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+    strategy:
+      matrix:
+        swift-version: [ "6.0.3", "latest" ]
 
     steps:
-      - name: Checkout code
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Retrieve AWS Secrets
+      - name: Lint code (placeholder for SwiftLint)
+        uses: docker://swift:${{ matrix.swift-version }}
+        with:
+          # If swiftlint is not available, you need to install it:
+          # e.g., apt-get update && apt-get install -y swiftlint
+          # or build your own Docker image containing swiftlint
+          args: swiftlint
+
+      - name: Run Swift Tests
+        uses: docker://swift:${{ matrix.swift-version }}
+        with:
+          # Enable coverage if you need: swift test --enable-code-coverage
+          args: swift test
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports-${{ matrix.swift-version }}
+          path: .build
+
+  # ---------------------------------------------------------------
+  # 2) Build-and-Push Job: depends on test-code
+  # ---------------------------------------------------------------
+  build-scan-and-push:
+    name: Build, Scan, and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test-code
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Retrieve Docker Hub credentials from AWS
+        id: retrieve-docker-secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -25,20 +72,34 @@ jobs:
             --secret-id docker-credentials \
             --query SecretString \
             --output text)
-    
-          echo "USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)" >> $GITHUB_ENV
-          echo "PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)" >> $GITHUB_ENV
+          
+          DOCKER_USER=$(echo "$docker_secrets" | jq -r '.USERNAME')
+          DOCKER_PASS=$(echo "$docker_secrets" | jq -r '.PASSWORD')
+
+          echo "::add-mask::$DOCKER_USER"
+          echo "::add-mask::$DOCKER_PASS"
+
+          echo "DOCKER_USERNAME=$DOCKER_USER" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=$DOCKER_PASS" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ env.USERNAME }}
-          password: ${{ env.PASSWORD }}
-    
-      - name: Build Docker Image for ExoplanetTerminal
-        run: |
-          docker build --target terminal -t rpairo/exoplanet-terminal:latest .
-    
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      # 1) Build the Docker image (no push yet)
+      - name: Build Docker Image (no push)
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: rpairo/exoplanet-terminal:latest
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 2) Scan the image with Docker Scout
       - name: Scan Docker Image for ExoplanetTerminal
         uses: docker/scout-action@v1
         with:
@@ -46,8 +107,9 @@ jobs:
           image: rpairo/exoplanet-terminal:latest
           only-severities: critical,high
           exit-code: true
-    
-      - name: Push Docker Image for ExoplanetTerminal
+
+      # 3) Push the image to Docker Hub if scan passed
+      - name: Push Docker Image
         if: success()
         run: |
           docker push rpairo/exoplanet-terminal:latest

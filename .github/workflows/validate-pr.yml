@@ -5,17 +5,31 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-pr
+  cancel-in-progress: true
+
 jobs:
   validate-pr:
-    name: Validate Pull Request
+    name: Validate PR
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' }}
+
+    # Skip this job if the PR is a draft
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      matrix:
+        swift-version: [ "6.0.3", "latest" ]
 
     steps:
-      - name: Checkout code
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Retrieve AWS Secrets
+      - name: Retrieve API Secrets from AWS
+        id: retrieve-api-secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -26,15 +40,36 @@ jobs:
             --query SecretString \
             --output text)
 
-          echo "BASE_URL=$(echo "$api_secrets" | jq -r .BASE_URL)" >> $GITHUB_ENV
-          echo "PATH_SEGMENT=$(echo "$api_secrets" | jq -r .PATH_SEGMENT)" >> $GITHUB_ENV
-          echo "ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r .ENDPOINT_EXOPLANETS)" >> $GITHUB_ENV
+          BASE_URL=$(echo "$api_secrets" | jq -r '.BASE_URL')
+          PATH_SEGMENT=$(echo "$api_secrets" | jq -r '.PATH_SEGMENT')
+          ENDPOINT_EXOPLANETS=$(echo "$api_secrets" | jq -r '.ENDPOINT_EXOPLANETS')
 
-      - name: Run Tests with Swift 6.0.3
-        uses: docker://swift:6.0.3
+          echo "::add-mask::$BASE_URL"
+          echo "::add-mask::$PATH_SEGMENT"
+          echo "::add-mask::$ENDPOINT_EXOPLANETS"
+
+          echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+          echo "PATH_SEGMENT=$PATH_SEGMENT" >> $GITHUB_ENV
+          echo "ENDPOINT_EXOPLANETS=$ENDPOINT_EXOPLANETS" >> $GITHUB_ENV
+
+      # Optional lint step
+      - name: Lint code (placeholder for SwiftLint)
+        uses: docker://swift:${{ matrix.swift-version }}
+        with:
+          args: swiftlint
+
+      # Run Swift tests
+      - name: Run Swift Tests
+        uses: docker://swift:${{ matrix.swift-version }}
         env:
           BASE_API_URL: ${{ env.BASE_URL }}
           PATH_SEGMENT: ${{ env.PATH_SEGMENT }}
           ENDPOINT_EXOPLANETS: ${{ env.ENDPOINT_EXOPLANETS }}
         with:
           args: swift test
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports-${{ matrix.swift-version }}
+          path: .build
