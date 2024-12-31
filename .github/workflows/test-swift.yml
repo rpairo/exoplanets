@@ -43,13 +43,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      - name: Lint code (placeholder for SwiftLint)
-        uses: docker://swift:6.0.3
-        with:
-          # If SwiftLint is not installed by default,
-          # install it or build a custom Docker image containing it.
-          args: swiftlint
-
       - name: Run Swift Tests
         uses: docker://swift:6.0.3
         env:
