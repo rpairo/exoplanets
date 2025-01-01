@@ -11,13 +11,13 @@ RUN swift build --configuration release
 FROM swift:6.0.3-slim AS terminal
 
 LABEL maintainer="Raul Pera raul_pairo@icloud.com"
-LABEL description="ExoplanetTerminal Swift application"
+LABEL description="ExoplanetsTerminal Swift application"
 
 WORKDIR /app
 
 RUN useradd --create-home --uid 1001 --shell /bin/bash swiftuser
 USER swiftuser
 
-COPY --from=build /build/.build/release/ExoplanetTerminal /app/ExoplanetTerminal
+COPY --from=build /build/.build/release/ExoplanetsTerminal /app/ExoplanetsTerminal
 
-ENTRYPOINT ["./ExoplanetTerminal"]
+ENTRYPOINT ["./ExoplanetsTerminal"]
