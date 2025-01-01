@@ -1,8 +1,9 @@
 import Foundation
+import Data
 
 public struct RetryConfigurationProvider: RetryConfiguration {
-    public let maxAttempts: Int
-    public let delayBetweenAttempts: TimeInterval
+    public var maxAttempts: Int
+    public var delayBetweenAttempts: TimeInterval
 
     public init(maxAttempts: Int, delayBetweenAttempts: TimeInterval) {
         self.maxAttempts = maxAttempts

@@ -35,15 +35,10 @@ public struct TerminalExoplanetView: ExoplanetDisplaying {
     }
 
     private func showHottestStar(identifier: String, temperature: Int) {
-        printer.printMessage("\n2. Hottest Star System:")
-        printer.printMessage(" - Planet: \(identifier)")
-        printer.printMessage(" - Temperature: \(temperature)K")
+        printer.printMessage("\n2. Hottest Star System:\n - Planet: \(identifier)\n - Temperature: \(temperature)K")
     }
 
     private func showTimeline(headers: String, separator: String, rows: [String]) {
-        printer.printMessage("\n3. Discovery Timeline:")
-        printer.printMessage(headers)
-        printer.printMessage(separator)
-        rows.forEach { printer.printMessage($0) }
+        printer.printMessage("\n3. Discovery Timeline:\n\(headers)\n\(separator)\(rows.reduce("") { $0 + "\n\($1)" })")
     }
 }

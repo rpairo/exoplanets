@@ -5,8 +5,11 @@ import Infrastructure
 import Presentation
 
 public struct AppComposition: ApplicationBuilder {
-    private let container = DIContainer.shared
-    public init() {}
+    private let container: DependencyInjection
+
+    public init(with dependencyInjector: DependencyInjection = DIContainer.shared) {
+        self.container = dependencyInjector
+    }
 
     public func build() async throws {
         container.reset()

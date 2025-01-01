@@ -1,7 +1,14 @@
 import Foundation
 
-public final class DIContainer {
-    public static let shared = DIContainer()
+public protocol DependencyInjection {
+    static var shared: DependencyInjection { get }
+    func register<Service>(_ service: Service, for protocolType: Service.Type) throws
+    func resolve<Service>() throws -> Service
+    func reset()
+}
+
+public class DIContainer: DependencyInjection{
+    public static var shared: DependencyInjection = DIContainer()
     private var services: [String: Any] = [:]
     private init() {}
 
