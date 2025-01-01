@@ -12,8 +12,8 @@ let package = Package(
             targets: ["ExoplanetsTerminal"]
         ),
         .library(
-            name: "exoplanetsAPI",
-            targets: ["exoplanetsAPI"]
+            name: "ExoplanetsAPI",
+            targets: ["ExoplanetsAPI"]
         )
     ],
     targets: [
@@ -43,7 +43,7 @@ let package = Package(
             path: "Sources/Composition"
         ),
         .target(
-            name: "exoplanetsAPI",
+            name: "ExoplanetsAPI",
             dependencies: ["Composition", "Presentation", "Domain"],
             path: "Sources/API"
         ),
