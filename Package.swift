@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "ExoplanetAnalyzer",
+    name: "exoplanet-analyzer",
     platforms: [
         .macOS(.v12)
     ],
