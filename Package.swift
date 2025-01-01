@@ -8,8 +8,8 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "ExoplanetTerminal",
-            targets: ["ExoplanetTerminal"]
+            name: "ExoplanetsTerminal",
+            targets: ["ExoplanetsTerminal"]
         ),
         .library(
             name: "ExoplanetAPI",
@@ -48,7 +48,7 @@ let package = Package(
             path: "Sources/API"
         ),
         .executableTarget(
-            name: "ExoplanetTerminal",
+            name: "ExoplanetsTerminal",
             dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
         ),

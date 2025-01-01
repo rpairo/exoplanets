@@ -17,9 +17,9 @@ spec:
       restartPolicy: Never
       containers:
         - name: exoplanets
-          image: rpairo/exoplanet-terminal:latest
+          image: rpairo/exoplanets-terminal:latest
           imagePullPolicy: IfNotPresent
-          command: ["./ExoplanetTerminal"]
+          command: ["./ExoplanetsTerminal"]
           env:
             - name: BASE_URL
               valueFrom:

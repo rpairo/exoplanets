@@ -351,9 +351,9 @@ After building the executable, Docker creates a second image using swift:6.0.3-s
 It created two docker images: terminal and api. These ones are the image build from the two exposed targets in the [SPM Package](Package.swift).
 
 #### Docker Hub
-The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanet-terminal) for easy access and deployment. This is an executable that targets the ExoplanetTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
-The API built images are stored in [Exoplanet Analyer API](https://hub.docker.com/repository/docker/rpairo/exoplanet-api) for easy access. This is an executable that targets the ExoplanetAPI, exposes the API layer to provide public functions to retrieve the three expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+The API built images are stored in [Exoplanet Analyer API](https://hub.docker.com/repository/docker/rpairo/exoplanets-api) for easy access. This is an executable that targets the ExoplanetAPI, exposes the API layer to provide public functions to retrieve the three expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
 ## API URL Abstraction
 
@@ -471,7 +471,7 @@ public struct NetworkRetryHandler: RetryableOperation {
 Package definition: [File](Package.swift)
 
 This file has the project structure and targets definitions. I have set up two executables: 
-- **ExoplanetTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
+- **ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
 
 - **ExoplanetAPI**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet consumtion results.
 
@@ -482,7 +482,7 @@ To develop this project I have followed the clean architecture conventions. In t
 - Infrastructure: Has Data dependency. It contains the connections and envinronmental configurations.
 - Presentation: Has Domain dependency. It contains the logic to prepare the results obtainted from domain, and display them.
 - Composition: Has Domain, Data, Presentation and Infrastructure dependencies. It takes care of the project building. It contains the dependency injector and the project build flow.
-- ExoplanetTerminal: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
+- ExoplanetsTerminal: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
 - ExoplanetAPI: Has Composition, Presentation and Domain dependencies. It provides an interface to propagate the expolanets information to library consumers.
 
 ```swift
@@ -496,8 +496,8 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "ExoplanetTerminal",
-            targets: ["ExoplanetTerminal"]
+            name: "ExoplanetsTerminal",
+            targets: ["ExoplanetsTerminal"]
         ),
         .executable(
             name: "ExoplanetAPI",
@@ -531,7 +531,7 @@ let package = Package(
             path: "Sources/Composition"
         ),
         .executableTarget(
-            name: "ExoplanetTerminal",
+            name: "ExoplanetsTerminal",
             dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
         ),
