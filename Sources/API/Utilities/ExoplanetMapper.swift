@@ -1,4 +1,4 @@
-@_exported import Domain
+import Domain
 
 struct ExoplanetMapper {
     static func toDTO(from exoplanet: Exoplanet) -> ExoplanetDTO {

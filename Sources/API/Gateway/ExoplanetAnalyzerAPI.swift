@@ -1,14 +1,12 @@
-@_exported import Presentation
-@_exported import Composition
-@_exported import Domain
+import Presentation
+import Composition
+import Domain
 
 public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
-    private var presenter: ExoplanetPresenting
+    private let presenter: ExoplanetPresenting
 
-    public init() async throws {
-        let appComposition: ApplicationBuilder = AppComposition()
-        try await appComposition.build()
-        self.presenter = try DIContainer.shared.resolve()
+    public init(presenter: ExoplanetPresenting) {
+        self.presenter = presenter
     }
 
     public func getOrphanPlanets() -> [ExoplanetDTO]? {
@@ -26,5 +24,14 @@ public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
         return timeline.reduce(into: [:]) { result, planetSizeCount in
             result[planetSizeCount.key] = PlanetSizeCountDTO.from(domain: planetSizeCount.value)
         }
+    }
+}
+
+public extension ExoplanetAnalyzerAPI {
+    static func makeDefault() async throws -> ExoplanetAnalyzerAPI {
+        let appComposition: ApplicationBuilder = AppComposition()
+        try await appComposition.build()
+        let presenter: ExoplanetPresenting = try DIContainer.shared.resolve()
+        return ExoplanetAnalyzerAPI(presenter: presenter)
     }
 }
