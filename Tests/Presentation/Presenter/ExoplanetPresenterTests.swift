@@ -20,7 +20,6 @@ final class ExoplanetPresenterTests: XCTestCase {
     }
 
     // MARK: - Tests
-
     func test_presenter_initialization_withValidUseCase_shouldPrepareData() async throws {
         let mockUseCase = MockExoplanetProcessing()
         let presenter = try await ExoplanetPresenter(useCases: mockUseCase)

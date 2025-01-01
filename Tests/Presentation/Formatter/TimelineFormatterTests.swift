@@ -4,7 +4,6 @@ import XCTest
 
 final class TimelineFormatterTests: XCTestCase {
     // MARK: - Tests
-
     func test_format_withValidTimeline_shouldReturnFormattedStrings() {
         let timeline: YearlyPlanetSizeDistribution = [
             2022: PlanetSizeCount(small: 1, medium: 2, large: 3),

@@ -21,7 +21,6 @@ final class DIContainerTests: XCTestCase {
     }
 
     // MARK: - Tests
-
     func test_registerAndResolve_shouldReturnRegisteredService() throws {
         let mockService = MockService()
         try DIContainer.shared.register(mockService, for: MockServiceProtocol.self)

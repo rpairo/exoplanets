@@ -4,7 +4,6 @@ import XCTest
 
 final class TerminalExoplanetViewTests: XCTestCase {
     // MARK: - Mock Dependencies
-
     final class MockPresenter: ExoplanetPresenting {
         var orphanPlanetsResult: [Exoplanet]? = nil
         var hottestStarExoplanetResult: Exoplanet? = nil
@@ -30,7 +29,6 @@ final class TerminalExoplanetViewTests: XCTestCase {
     }
 
     // MARK: - Tests
-
     func test_show_withValidData_shouldPrintAllSections() {
         let presenter = MockPresenter()
         presenter.orphanPlanetsResult = [Exoplanet(planetIdentifier: "Orphan", typeFlag: 3)]

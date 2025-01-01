@@ -31,6 +31,17 @@ final class AppCompositionTests: XCTestCase {
         }
     }
 
+    // MARK: - Setup & Teardown
+    override func setUp() {
+        super.setUp()
+        MockDIContainer.shared.reset()
+    }
+
+    override func tearDown() {
+        MockDIContainer.shared.reset()
+        super.tearDown()
+    }
+
     // MARK: - Tests
     func test_build_shouldRegisterAllComponents() async throws {
         let mockContainer = MockDIContainer.shared
@@ -52,7 +63,7 @@ final class AppCompositionTests: XCTestCase {
     func test_build_withMissingDependency_shouldThrowError() async {
         let mockContainer = MockDIContainer.shared
         let appComposition = AppComposition(with: mockContainer)
-
+        
         do {
             try await appComposition.build()
 

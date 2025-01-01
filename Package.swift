@@ -54,7 +54,7 @@ let package = Package(
         ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure"],
+            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure", "ExoplanetsAPI"],
             path: "Tests"
         )
     ]

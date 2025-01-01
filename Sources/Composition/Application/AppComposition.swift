@@ -12,13 +12,18 @@ public struct AppComposition: ApplicationBuilder {
     }
 
     public func build() async throws {
-        container.reset()
+        do {
+            container.reset()
 
-        try registerConfiguration()
-        try registerNetworking()
-        try registerDataLayer()
-        try registerDomainLayer()
-        try await registerPresentationLayer()
+            try registerConfiguration()
+            try registerNetworking()
+            try registerDataLayer()
+            try registerDomainLayer()
+            try await registerPresentationLayer()
+        } catch {
+            print("Error during build: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     private func registerConfiguration() throws {
