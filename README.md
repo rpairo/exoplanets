@@ -8,7 +8,9 @@ This is the library Exoplanets Analyzer, used to consume the provided exoplanets
     ![Docker](https://github.com/user-attachments/assets/5d35feb4-ff57-4a65-8a83-1816a1e49f4c)
 
     #### [Kubernetes](k8s/scripts/deploy-k8s-resources.sh): Notice there are few scripts I done based on your installed tools. The orchestrator one is *[deploy-k8s-resources.sh](k8s/scripts/deploy-k8s-resources.sh)* but if you wants to do it easier you can execute directly *[create-k8s-secrets-manual.sh](k8s/scripts/create-k8s-secrets-manual.sh)*.
-    I am running kubernetes by *Docker Desktop feature*, this makes not possible to use AWS Secrets Manager by the kubernetes script. This is the reason why I made these scripts. In a real production environment, with kubenetes deployed in a real clusters we would be able to manage the env vars by the deployment scripts.
+    I am running kubernetes by *Docker Desktop feature*, this makes not possible to use AWS Secrets Manager by the kubernetes script. This is the reason why I made these scripts. In a real production environment, with kubenetes deployed in a real clusters we would be able to manage the env vars by the deployment scripts. 
+    
+    Notice I have chose to create a **Job** instead of **Deployment** since this project is made to run once. Does not requires to be restarted every time it finish and stops.
     ![Kubernetes](https://github.com/user-attachments/assets/03488df9-2b35-4532-a388-4664166da674)
 
     #### [Xcode](): Notice that to run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target. This is required cause Xcode does not share the OS environment variables..
@@ -34,7 +36,7 @@ In the Kaggle documentation, in the dataset version 2, in detail section we can 
 In this repository, we can find the file FIELDS.md: https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md
 Where I can find the next field description list:
 
-### Fields description
+### Fields Description
 1. `name` Primary identifier of planet
 2. `binaryflag` Binary flag [0=no known stellar binary companion; 1=P-type binary (circumbinary); 2=S-type binary; 3=orphan planet (no star)]
 3. `mass` Planetary mass [Jupiter masses]
@@ -176,7 +178,7 @@ extension KeyedDecodingContainer {
 
 You can see the mapping logic in [Exoplanet.swift](Sources/Domain/Models/Exoplanet.swift)
 
-## Key Goals
+## Key Goals Approaches
 
 ### 1. The number of orphan planets.
 To filter the dataset and get only the orphan one, I have based the next algorithm in the documentation information. I have noticed the **TypeFlag(binaryflag) in value `3` means Orphan planet**.
@@ -318,15 +320,15 @@ Year   Small  Medium  Large
 
 ## Methodology
 
-## Initial Approach
-Initially, the process involved iterating over the dataset separately for each goal:
+### Initial Approach
+Initially, the easier first idea would be iterating over the dataset separately for each goal:
 1. Identify orphan planets (those with `typeFlag == 3`).
-2. Find the planet orbiting the hottest star.
-3. Generate a timeline of planet discoveries grouped by size categories (`small`, `medium`, `large`).
+2. Find the planet orbiting the hottest star (the one with highest `hostStarTempK`).
+3. Generate a timeline of exoplanet discoveries grouped by size categories (`small`, `medium`, `large`).
 
 Each of these operations required a full loop over the dataset, resulting in three separate iterations. While this approach is functionally correct, it is suboptimal in terms of performance, as it performs redundant work.
 
-## Optimized Approach
+### Optimized Approach
 Upon reflection, I realized that all three goals could be achieved within a single loop through the dataset. By combining the logic for these operations:
 - We identify orphan planets as we iterate.
 - Track the hottest star's planet dynamically by comparing temperatures.
@@ -363,44 +365,59 @@ public func processExoplanets() async throws -> ProcessedExoplanetResult {
 }
 ```
 
-## Implementation Benefits
-1. **Reduced Redundancy:**
-   - Combining the operations eliminates the need for multiple loops, saving computational resources.
+### Implementation Benefits
+**Reduced Redundancy:** Combining the operations eliminates the need for multiple loops, saving computational resources.
    
-2. **Improved Performance:**
-   - Although the asymptotic complexity remains the same, fewer iterations translate to faster execution in practical terms.
+**Improved Performance:** Although the asymptotic complexity remains the same, fewer iterations translate to faster execution in practical terms.
 
-3. **Clean and Maintainable Code:**
-   - Consolidating the logic into a single loop makes the code easier to read, maintain, and debug.
+**Clean and Maintainable Code:** Consolidating the logic into a single loop makes the code easier to read, maintain, and debug.
 
-## Conclusion
+### Conclusion
 This refined methodology achieves all three objectives efficiently within a single iteration of the dataset. It highlights the importance of balancing theoretical computational complexity with real-world performance considerations. By optimizing the approach, we ensure the system remains performant and scalable for larger datasets.
 
-# Technical details
+## Technical Details
 
-## AWS Secrets Manager
+### AWS Secrets Manager
+To avoid expose the **API url** directly to the code, as well as the **Docker credentials** and **Google API keys**, I have chose for the option to create an externalised service that vault and provide these details.
 
-To avoid expose the API url directly to the code, as well as the Docker credentials, I have chose for the option to create an externalised service that vault and provide these details.
-Then I just have to store the IAM credentials in my GitHub Repository Secrets, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: 'exoplanets-analyzer-api-url-test' for testing, and 'docker-credentials' to login, scan image vulnerabilities and push to Docker Hub the new image.
+Then I just have to store the **IAM credentials** in my **GitHub Repository Secrets**, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: **exoplanets-analyzer-api-url-test** for testing, and **docker-credentials** to login, scan vulnerabilities and push to Docker Hub the new image.
 
-For more security, I have created a custom IAM policy that only has read access only to both Secrets.
-I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
-This is IAM user I have used to set up its Access Key ID and Secret Key.
+For more security, I have created a custom **IAM policy** that only has read access only to both Secrets. I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
 
-I have configured the AWS Secrets Manager to be deployed in us-west-2 region since this is the closest one from Arizona, and latency will be reduced.
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": [
+                "arn:aws:secretsmanager:us-west-2:<my-account-id>:secret:docker-credentials-ntKnBq",
+                "arn:aws:secretsmanager:us-west-2:<my-account-id>:secret:exoplanets-analyzer-api-url-test-gq8zSR"
+            ]
+        }
+    ]
+}
+```
+![IAM Users](https://github.com/user-attachments/assets/28cb095e-1259-4c62-adad-e3b981bb3caf)
 
-I have set up 3 secrets:
-- exoplanets-analyzer-api-url-prod (To set up the URL's and required environment setup for production).
-- exoplanets-analyzer-api-url-dev (To set up the URL's and required environment setup for development).
-- exoplanets-analyzer-api-url-test (To set up the URL's and required environment setup for testing).
-- docker-credentials (To be able to build and push the new Image to Docker Hub).
+I have set up the **github-actions-user** by it's **Access key ID** and **Secret access key** in the GitHub Repository Secrets. Having these credentials injected and safe to be used in the CI flow.
 
-## CI/CD Flow
+I have configured the AWS Secrets Manager to be deployed in us-west-2 region since this is the closest one from Arizona, and latency will be reduced. I have set up 4 secrets:
+- **exoplanets-analyzer-api-url-prod**: URL's and required environment setup for production.
+- **exoplanets-analyzer-api-url-dev**: URL's and required environment setup for development.
+- **exoplanets-analyzer-api-url-test**: URL's and required environment setup for testing.
+- **docker-credentials**: To be able to build and push the new Image to Docker Hub.
+
+![AWS Secrets](https://github.com/user-attachments/assets/25c485a4-bea3-4e6f-a7ac-2fa5aa4a49d9)
+
+### GitHub Actions (CI/CD Flow)
 Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes.
 
 In GitHub the main branch is protected and restricted to add code only by Pull Requests.
-
-### GitHub Actions
 
 This [Pull Request Validation](.github/workflows/validate-pr.yml):
 - **`validate-pr`:**  
@@ -418,7 +435,7 @@ This [Build and Deploy](.github/workflows/build-and-deploy.yml):
   - Scans the Docker image with Docker Scout to identify vulnerabilities.
   - Pushes the image to Docker Hub only if no critical or high-severity vulnerabilities are found during the scan.
 
-### Docker
+### Dockerfile
 This [Dockerfile](Dockerfile) file contains the instructions to build up a Docker Image based on my code.
 
 In this case, I could use the command:
@@ -439,12 +456,12 @@ After building the executable, Docker creates a second image using swift:6.0.3-s
 
 It created two docker images: terminal and api. These ones are the image build from the two exposed targets in the [SPM Package](Package.swift).
 
-#### Docker Hub
+### Docker Hub
 The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
 The API built images are stored in [Exoplanet Analyer API](https://hub.docker.com/repository/docker/rpairo/exoplanets-api) for easy access. This is an executable that targets the exoplanetsAPI, exposes the API layer to provide public functions to retrieve the three expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
-## API URL Abstraction
+### API URL Abstraction
 
 Configuration Factory definition: [File](Sources/Infrastructure/Environment/ConfigurationFactory.swift)
 
@@ -478,7 +495,7 @@ public struct ConfigurationFactory {
 }
 ```
 
-## Dependency Injection
+### Dependency Injection
 
 To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
 
@@ -560,9 +577,10 @@ public struct NetworkRetryHandler: RetryableOperation {
 Package definition: [File](Package.swift)
 
 This file has the project structure and targets definitions. I have set up two executables: 
-- **ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
 
-- **exoplanetsAPI**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet consumtion results.
+**ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
+
+**exoplanetsAPI**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet consumtion results.
 
 To develop this project I have followed the clean architecture conventions. In this case, the inned layers are agnostic to the above layers. You can notice the dependencies by the *dependencies: ["layer"]* parameter in the project configuration.
 
@@ -718,5 +736,5 @@ I have been using Kubernetes by Docker Desktop, and this has limited me the capa
 
 - [exoplanets-terminal.yaml](k8s/base/exoplanets-terminal.yaml): This file contains all the required instructions to pull the image from docker hub, set up and run in kubernetes.
 
-Notice I have chose to create a **Job** instead of **Deployment** since this project is made to run once. Does not requires to be restarted every time it finish and stops.
+
 
