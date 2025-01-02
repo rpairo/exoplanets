@@ -10,7 +10,7 @@ This is the library **Exoplanets Analyzer**, designed to consume the provided ex
 Once imported, set up the dependency exposure in your project with:
 
 ```swift
-.product(name: "ExoplanetsAPI", package: "exoplanets").
+.product(name: "ExoplanetsAPI", package: "exoplanets")
 ```
 
 After this, the library will be ready to use.
@@ -22,7 +22,7 @@ Alternatively, you can use Docker for execution. The Docker image is available o
 Pull the Docker image into your local environment using the command:
 
 ```bash
-docker pull rpairo/exoplanets-terminal.
+docker pull rpairo/exoplanets-terminal
 ```
 
 Additionally, scripts are provided to simplify the setup of [Docker](docker/setup-docker-resources.sh) or [Kubernetes](k8s/scripts/deploy-k8s-resources.sh). Please note that this project requires some environmental variables to run correctly.
