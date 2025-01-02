@@ -1,107 +1,167 @@
 # Exoplanets Analyzer
+This is the library **Exoplanets Analyzer**, designed to consume the provided exoplanets dataset, analyze, process, and serve it. You can find the public repository for this project at https://github.com/rpairo/exoplanets.
 
-This is the library Exoplanets Analyzer, used to consume the provided exoplanets dataset, analyze, process and serve it. You can find the public repository of this project in https://github.com/rpairo/exoplanets.
-- **Library executable:** You can import this project into another swift compatible project using SPM (Swift Package Management) by this coordinates: *.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")*. Once imported like any other third party library, you should set up the dependency exposition in your project by *.product(name: "ExoplanetsAPI", package: "exoplanets")*, and you will be already ready to use it.
-- **Terminal executable:** You can also execute the project as consumible. Just clone this repository, and run it by the ExoplanetTerminal target, and you will see the result in your terminal. If you prefer, you can also pull the docker for this executable, and use it as easy as you want. You can find the image in dockerhub: https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal and pull it into your local docker by *rpairo/exoplanets-terminal*. I have prepared few scripts that will help you to set up the docker or kubernetes easier, since this projects requires a couple of environmental variables.
+**Library Executable:** You can import this project into another Swift-compatible project using Swift Package Management (SPM) with the following coordinates: 
 
-    #### [Docker](docker/setup-docker-resources.sh): Notice there are few scripts to manage the docker setup: one based on if you have AWS CLI installed *[setup-docker-aws-secrets.sh](docker/setup-docker-aws-secrets.sh)*, to fetch the secrets from AWS and set up the env var with them, and another to set up docker by the env var directly *[setup-docker-manual.sh](docker/setup-docker-manual.sh)*.
-    Notice I have code up the env vars by base64 to do not expose them directly, but its only a codification, so does not cypher anything and its easy to code them back to plain text. I did that since its public url and I don't have any way to provide you the standalone scripts if not.
-    ![Docker](https://github.com/user-attachments/assets/5d35feb4-ff57-4a65-8a83-1816a1e49f4c)
+```swift
+.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")
+```
 
-    #### [Kubernetes](k8s/scripts/deploy-k8s-resources.sh): Notice there are few scripts I done based on your installed tools. The orchestrator one is *[deploy-k8s-resources.sh](k8s/scripts/deploy-k8s-resources.sh)* but if you wants to do it easier you can execute directly *[create-k8s-secrets-manual.sh](k8s/scripts/create-k8s-secrets-manual.sh)*.
-    I am running kubernetes by *Docker Desktop feature*, this makes not possible to use AWS Secrets Manager by the kubernetes script. This is the reason why I made these scripts. In a real production environment, with kubenetes deployed in a real clusters we would be able to manage the env vars by the deployment scripts. 
-    
-    Notice I have chose to create a **Job** instead of **Deployment** since this project is made to run once. Does not requires to be restarted every time it finish and stops.
-    ![Kubernetes](https://github.com/user-attachments/assets/03488df9-2b35-4532-a388-4664166da674)
+Once imported, set up the dependency exposure in your project with:
 
-    #### [Xcode](): Notice that to run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target. This is required cause Xcode does not share the OS environment variables..
-    ![Xcode](https://github.com/user-attachments/assets/9bd58723-7b14-4750-bb59-b9f372e4f67d)
+```swift
+.product(name: "ExoplanetsAPI", package: "exoplanets").
+```
 
-    #### You can set them up by *Product -> Scheme -> Edit Scheme -> \<target>*
-    ![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
+After this, the library will be ready to use.
 
+**Terminal Executable:** You can also execute the project as a standalone tool. Simply clone the repository and run it using the ExoplanetTerminal target to see results directly in your terminal.
 
-#### API Rest
-This library that you are currenly reading it is not everything yet. I have created an API Rest that consumes this library as an external dependency, to provide you even more fun! You can find the api rest in https://github.com/rpairo/exoplanets-api. This API will provide you more than the basic information by website and api json, up to you. You will find the related documentation in its own README.
+Alternatively, you can use Docker for execution. The Docker image is available on Docker Hub at https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal.
 
-## Dataset
-Based on the documentation located here: https://www.kaggle.com/datasets/mrisdal/open-exoplanet-catalogue
-There are two dataset versions.
+Pull the Docker image into your local environment using the command:
 
-I have realised the provided JSON for this assesment: https://gist.githubusercontent.com/joelbirchler/66cf8045fcbb6515557347c05d789b4a/raw/9a196385b44d4288431eef74896c0512bad3defe/exoplanets is based on the version 1.0 of this dataset.
+```bash
+docker pull rpairo/exoplanets-terminal.
+```
 
-The dataset version 1 has 3426 exoplanets, while the version 2 has 3584.
-I have checked, and effectively, by the provided json url, we are receiving 3426 exoplanets. I can confirm it by 2 checks: Same name of records provided, and same number of orphan planets based on TypeFlag: 2. The version 2 has three orphan planets.
+Additionally, scripts are provided to simplify the setup of [Docker](docker/setup-docker-resources.sh) or [Kubernetes](k8s/scripts/deploy-k8s-resources.sh). Please note that this project requires some environmental variables to run correctly.
 
-In the Kaggle documentation, in the dataset version 2, in detail section we can find referenced the oec tables repository: https://github.com/OpenExoplanetCatalogue/oec_tables.
-In this repository, we can find the file FIELDS.md: https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md
-Where I can find the next field description list:
+### Docker Setup
+There are several scripts available to manage the Docker setup:
+
+[**Using AWS CLI**](docker/setup-docker-aws-secrets.sh): If you have the AWS CLI installed, you can use the script setup-docker-aws-secrets.sh. This script fetches the necessary secrets from AWS and sets up the environment variables for you.
+
+[**Manual Setup**](docker/setup-docker-manual.sh): If you prefer manual setup, use the script setup-docker-manual.sh to configure Docker by directly setting the environment variables.
+
+**Note:** The environment variables have been encoded in Base64 to avoid exposing them directly. However, this is only a basic encoding, not encryption. It’s straightforward to decode them back to plain text. This approach was used since the scripts are publicly accessible, and there’s no alternative way to share standalone scripts securely.
+
+![Docker](https://github.com/user-attachments/assets/5d35feb4-ff57-4a65-8a83-1816a1e49f4c)
+
+### Kubernetes Setup
+Several scripts are available for Kubernetes setup, tailored to your installed tools:
+
+Orchestrator Script: Use [deploy-k8s-resources.sh](k8s/scripts/deploy-k8s-resources.sh) as the primary orchestrator script for deploying Kubernetes resources.
+
+Manual Secrets Setup: If you prefer a simpler approach, execute [create-k8s-secrets-manual.sh](k8s/scripts/create-k8s-secrets-manual.sh) to manually set up Kubernetes secrets.
+
+I am running Kubernetes using the Docker Desktop feature. This configuration prevents the use of AWS Secrets Manager with Kubernetes scripts. To address this limitation, I created these custom scripts. In a real production environment, where Kubernetes is deployed in actual clusters, we would manage environment variables directly through deployment scripts.
+
+Additionally, I chose to create a Job instead of a Deployment for this project. Since the project is designed to run once and does not require restarts upon completion, a Job is more appropriate.
+
+![Kubernetes](https://github.com/user-attachments/assets/03488df9-2b35-4532-a388-4664166da674)
+
+### Xcode
+To run the project in Xcode, you will need to manually configure the environment variables for the Scheme target. This step is necessary because Xcode does not inherit the OS-level environment variables.
+
+![Xcode](https://github.com/user-attachments/assets/9bd58723-7b14-4750-bb59-b9f372e4f67d)
+
+#### How to Set Up Environment Variables in Xcode:
+1. Go to **Product -> Scheme -> Edit Scheme -> \<target>**
+2. Manually configure the required environment variables.
+
+![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
+
+### API Rest
+This library you are currently reading about is not the whole story! I have also created a REST API that uses this library as an external dependency to provide even more functionality and fun!
+
+You can find the REST API repository at https://github.com/rpairo/exoplanets-api.
+
+This API offers more than just basic information through a website and JSON responses — the choice is yours! Comprehensive documentation is available in the README file of the API repository.
+
+### Dataset
+Based on the documentation found [here](https://www.kaggle.com/datasets/mrisdal/open-exoplanet-catalogue), there are two versions of the dataset.
+
+The provided JSON for this assessment, available at this [URL](https://gist.githubusercontent.com/joelbirchler/66cf8045fcbb6515557347c05d789b4a/raw/9a196385b44d4288431eef74896c0512bad3defe/exoplanets), is based on version 1.0 of the dataset.
+
+#### Key Details:
+- Version 1.0 contains 3,426 exoplanets.
+- Version 2.0 contains 3,584 exoplanets.
+
+After analyzing the provided JSON, I can confirm that it matches version 1.0 of the dataset due to the following reasons:
+1.	The record names in the provided JSON match those in version 1.0.
+2.	The dataset contains the same number of orphan planets (TypeFlag: 3) as in version 1.0, which has only two orphan planets, whereas version 2.0 has three orphan planets.
+
+In the Kaggle documentation for version 2.0, within the “Details” section, there is a reference to the [Open Exoplanet Catalogue (OEC) tables repository](https://github.com/OpenExoplanetCatalogue/oec_tables).
+
+Within this repository, the file [FIELDS.md](https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md) provides a detailed description of the dataset fields. This file contains the complete field description list for reference.
 
 ### Fields Description
-1. `name` Primary identifier of planet
-2. `binaryflag` Binary flag [0=no known stellar binary companion; 1=P-type binary (circumbinary); 2=S-type binary; 3=orphan planet (no star)]
-3. `mass` Planetary mass [Jupiter masses]
-4. `radius` Radius [Jupiter radii]
-5. `period` Period [days]
-6. `semimajoraxis` Semi-major axis [Astronomical Units]
-7. `eccentricity` Eccentricity
-8. `periastron` Periastron [degree]
-9. `longitude` Longitude [degree]
-10. `ascendingnode` Ascending node [degree]
-11. `inclination` Inclination [degree]
-12. `temperature` Surface or equilibrium temperature [K]
-13. `age` Age [Gyr]
-14. `discoverymethod` Discovery method
-15. `discoveryyear` Discovery year [yyyy]
-16. `lastupdate` Last updated [yy/mm/dd]
-17. `system_rightascension` Right ascension [hh mm ss]
-18. `system_declination` Declination [+/-dd mm ss]
-19. `system_distance` Distance from Sun [parsec]
-20. `hoststar_mass` Host star mass [Solar masses]
-21. `hoststar_radius` Host star radius [Solar radii]
-22. `hoststar_metallicity` Host star metallicity [log relative to solar]
-23. `hoststar_temperature` Host star temperature [K]
-24. `hoststar_age` Host star age [Gyr]
-25. `list` A list of lists the planet is on
+```yaml
+1.	name: Primary identifier of the planet
+2.	binaryflag: Binary flag
+    0 = No known stellar binary companion
+	1 = P-type binary (circumbinary)
+	2 = S-type binary
+	3 = Orphan planet (no star)
+3.	mass: Planetary mass [Jupiter masses]
+4.	radius: Radius [Jupiter radii]
+5.	period: Orbital period [days]
+6.	semimajoraxis: Semi-major axis [Astronomical Units]
+7.	eccentricity: Orbital eccentricity
+8.	periastron: Periastron [degree]
+9.	longitude: Longitude [degree]
+10.	ascendingnode: Ascending node [degree]
+11.	inclination: Inclination [degree]
+12.	temperature: Surface or equilibrium temperature [K]
+13.	age: Age [Gyr]
+14.	discoverymethod: Discovery method
+15.	discoveryyear: Discovery year [yyyy]
+16.	lastupdate: Last updated [yy/mm/dd]
+17.	system_rightascension: Right ascension [hh mm ss]
+18.	system_declination: Declination [+/-dd mm ss]
+19.	system_distance: Distance from Sun [parsec]
+20.	hoststar_mass: Host star mass [Solar masses]
+21.	hoststar_radius: Host star radius [Solar radii]
+22.	hoststar_metallicity: Host star metallicity [log relative to solar]
+23.	hoststar_temperature: Host star temperature [K]
+24.	hoststar_age: Host star age [Gyr]
+25.	list: Lists the planet is on
+```
 
-I have noticed these fields have been mapped to the received JSON that we had been provided by the assesment. The json structure is the next one:
-
-### JSON Structure
+#### JSON Structure
+The provided JSON structure, as received in the assessment, maps to these fields as follows:
 ```json
 {
-    "PlanetIdentifier": "HD 45184 b",
-    "TypeFlag": 0,
-    "PlanetaryMassJpt": 0.04,
-    "RadiusJpt": "",
-    "PeriodDays": 5.8872,
-    "SemiMajorAxisAU": 0.0638,
-    "Eccentricity": 0.3,
-    "PeriastronDeg": "",
-    "LongitudeDeg": "",
-    "AscendingNodeDeg": "",
-    "InclinationDeg": "",
-    "SurfaceTempK": 1045.8,
-    "AgeGyr": "",
-    "DiscoveryMethod": "RV",
-    "DiscoveryYear": 2011,
-    "LastUpdated": "11/09/12",
-    "RightAscension": "06 24 44",
-    "Declination": "-28 46 48",
-    "DistFromSunParsec": 21.9,
-    "HostStarMassSlrMass": "",
-    "HostStarRadiusSlrRad": "",
-    "HostStarMetallicity": "",
-    "HostStarTempK": 5940,
-    "HostStarAgeGyr": ""
+    "PlanetIdentifier": "HD 45184 b",                   // Maps to `name`
+    "TypeFlag": 0,                                      // Maps to `binaryflag`
+    "PlanetaryMassJpt": 0.04,                           // Maps to `mass`
+    "RadiusJpt": "",                                    // Maps to `radius`
+    "PeriodDays": 5.8872,                               // Maps to `period`
+    "SemiMajorAxisAU": 0.0638,                          // Maps to `semimajoraxis`
+    "Eccentricity": 0.3,                                // Maps to `eccentricity`
+    "PeriastronDeg": "",                                // Maps to `periastron`
+    "LongitudeDeg": "",                                 // Maps to `longitude`
+    "AscendingNodeDeg": "",                             // Maps to `ascendingnode`
+    "InclinationDeg": "",                               // Maps to `inclination`
+    "SurfaceTempK": 1045.8,                             // Maps to `temperature`
+    "AgeGyr": "",                                       // Maps to `age`
+    "DiscoveryMethod": "RV",                            // Maps to `discoverymethod`
+    "DiscoveryYear": 2011,                              // Maps to `discoveryyear`
+    "LastUpdated": "11/09/12",                          // Maps to `lastupdate`
+    "RightAscension": "06 24 44",                       // Maps to `system_rightascension`
+    "Declination": "-28 46 48",                         // Maps to `system_declination`
+    "DistFromSunParsec": 21.9,                          // Maps to `system_distance`
+    "HostStarMassSlrMass": "",                          // Maps to `hoststar_mass`
+    "HostStarRadiusSlrRad": "",                         // Maps to `hoststar_radius`
+    "HostStarMetallicity": "",                          // Maps to `hoststar_metallicity`
+    "HostStarTempK": 5940,                              // Maps to `hoststar_temperature`
+    "HostStarAgeGyr": ""                                // Maps to `hoststar_age`
 }
 ```
 
-The JSON fields are based un PascalCase format, with different names mapped from the original dataset repository. Ex. 'binaryflag' is mapped into 'TypeFlag'. I can be sure about it even when I was not able to find any documentation showing up the mapping, cause the available values for 'TypeFlag' are only [0, 1, 2 or 3], the same available values of 'binaryflag'. Since the sintactic aproximation and the values range are really similar, I have assumed they both map eachother.
+The JSON fields follow a PascalCase format and have different names compared to the original dataset repository. For example, binaryflag from the original dataset is mapped to TypeFlag in the JSON. Even though no explicit documentation confirms this mapping, I am confident about it based on the following observations:
 
-This is the mapping table I have assumed to work on this assesment.
-This mapping is important, since I can understand the fields meaning, to achieve the proposed goals.
+1. The available values for TypeFlag in the JSON are [0, 1, 2, 3], which perfectly align with the range and meaning of the binaryflag field in the dataset.
+
+2. The syntactic similarity and the consistent value range strongly suggest they represent the same concept.
+
+Given this, I have assumed this mapping to work on the assessment. Understanding these mappings is crucial as it allows me to interpret the JSON fields correctly and achieve the proposed goals.
+
+Here is the assumed mapping table for reference:
 
 ### Dataset - JSON field mapping
+
 | **JSON Key**             | **Dataset Field Name**       | **Description**                                                                                  |
 |--------------------------|-----------------------------|--------------------------------------------------------------------------------------------------|
 | `PlanetIdentifier`       | `name`                     | Primary identifier of the planet.                                                               |
@@ -134,17 +194,25 @@ This mapping is important, since I can understand the fields meaning, to achieve
 | `HostStarAgeGyr`         | `hoststar_age`             | Age of the host star in billions of years (Gyr).                                               |
 | `ListsPlanetIsOn`        | `list`                     | A list of catalogs where the planet appears.                                                   |
 
-I have noticed the JSON provided has a specific issue source: Some Int and Double type properties has different type depending if they are null or with value.
-Ex. `PlanetaryMassJpt` has `0.076` for `Gliese 3293 b`, but `""` for `Kepler-1037 b`.
-This circunsancy can create a serialization issue. This is cause when I create the DTO conforming the Decodable protocol, I have to setup the expected value type. And for Int and Double types, there is not direct conversion from empty string `""` into `0`, `0.0` or `nil`.
+The provided JSON data has a specific issue where some Int and Double fields may either hold valid numeric values or be represented as an empty string ("") when no value is provided. For example:
 
-To solve this casuistic, I have implemented the decodable constructor, and manually set up the conversions.
+- `PlanetaryMassJpt` has the value `0.076` for `Gliese 3293 b`.
+- However, for `Kepler-1037 b`, the same field is represented as an empty string `("")`.
 
-I have extended the [`KeyedDecodingContainer`](Sources/Domain/Models/Exoplanet.swift) struct, that is the responsable to hanlde the type decoding from decodable protocol, and the henadling functions will be cleaner stored in it's better responsability scope. I have created 2 functions to handle the string null casuistic for know Int and Double fields.
+#### Serialization Issue
+This inconsistency can lead to serialization issues because the Decodable protocol in Swift requires a clear type definition for each property. There is no direct conversion from an empty string ("") to valid Int, Double, or nil values.
 
-First, I try to decode from String type. In case this is `true`, I will return `nil`.
-In case it is not possible to decode from String, means its the expected value, `Int` or `Double` depending the case. Then I can decode this and return it.
-Thankfuly using the optionals for those values, I can easily handle this casuistic with standarize `null` values.
+#### Solution: Custom Decoding
+To handle this, I implemented a custom decoding logic by extending the [`KeyedDecodingContainer`](Sources/Domain/Models/Exoplanet.swift) struct. This approach ensures the decoding logic is centralized and maintains clean code organization.
+
+#### Implementation Details
+**1. Custom Decodable Constructor:**
+    - The constructor attempts to decode the field as a String first.
+	- If the value is an empty string (""), it returns nil.
+	- If decoding as a String fails, it proceeds to decode the expected type (Int or Double).
+
+**2. Optional Handling for Standardized nil Values:**
+    - By using optional types (Int? or Double?), the implementation handles the absence of values gracefully, ensuring consistency in the decoded data.
 
 ```swift
 extension KeyedDecodingContainer {
@@ -161,13 +229,7 @@ extension KeyedDecodingContainer {
         }
         return try? decodeIfPresent(Int.self, forKey: key)
     }
-}
-```
 
-Also, after review the dataset, I assumed the dataset constantly uses `""` to mean `no data`, and there is no case where empty string can means anything in this circunscancies. Then, to maintain coherence in the model, and don't have two different `no data` types: `""` and `nil`, that would drive me to have to check if string value is empty or not even when it has value, I have prefered to create a function to handle the empty strings received values and convert them into `nil` values. This will contribute to have a cleaner and more consistent code.
-
-```swift
-extension KeyedDecodingContainer {
     func decodeIfPresentString(forKey key: K) throws -> String? {
         if let rawValue = try? decodeIfPresent(String.self, forKey: key) {
             return rawValue.isEmpty ? nil : rawValue
@@ -177,16 +239,27 @@ extension KeyedDecodingContainer {
 }
 ```
 
-You can see the mapping logic in [Exoplanet.swift](Sources/Domain/Models/Exoplanet.swift)
+#### Advantages
+1. **Centralized Decoding Logic**: The custom extension ensures a clean separation of concerns and improves code reusability.
+2. **Handles Null Cases Gracefully**: By using optionals, null values are standardized, preventing runtime errors.
+3. **Robustness**: The logic handles both numeric and empty string representations seamlessly.
+
+This solution ensures that data inconsistencies in the JSON file do not disrupt the application’s functionality while maintaining a clean and organized codebase.
 
 ## Key Goals Approaches
+### 1. Determining the Number of Orphan Planets
+To determine the number of orphan planets in the dataset, I followed the algorithm described below, based on the information provided in the documentation:
 
-### 1. The number of orphan planets.
-To filter the dataset and get only the orphan one, I have based the next algorithm in the documentation information. I have noticed the **TypeFlag(binaryflag) in value `3` means Orphan planet**.
+#### Orphan Planet Definition
+**- TypeFlag (binaryflag) with a value of 3** signifies an orphan planet.
 
-In this case, I have looped once across the dataset, and checked if the exoplanet has the TypeFlag property value equals to 3.
+#### Algorithm
+1. Loop through the dataset once to identify planets where the TypeFlag property is equal to 3.
+2. Add the identified exoplanets to a collection structure for further use (e.g., analysis, display, etc.).
+3. Return the collection’s count for the final output.
 
-I have added the exoplanet into collection structure to be returned, just in case we want to do anything else more than only show up the collectioun items count.
+#### Implementation
+The following Swift function checks whether an exoplanet is orphaned based on the TypeFlag value:
 
 ```swift
 private func isOrphan(exoplanet: Exoplanet) -> Bool {
@@ -195,12 +268,24 @@ private func isOrphan(exoplanet: Exoplanet) -> Bool {
 }
 ```
 
-In the execution, we will see 2 orphan exoplanets:
-- PSO J318.5-22
-- CFBDSIR2149
+#### Execution Result
+When executing the algorithm, the dataset reveals **2 orphan exoplanets**:
+- **PSO J318.5-22**
+- **CFBDSIR2149**
 
-### 2. Find the planet orbiting the hottest star.
-To find the hottest start exoplanet, I have followed the next approach: In the exoplanets dataset loop, by every loop, I check if the current exoplanet host star temperature is higher than the stored one. In case it is, I will replace the stored exoplanet by the current one. If not, will continue to the next loop. Bt the end of the loop, we will have the hottest one.
+By including these orphan planets in a collection, we allow for additional operations beyond just counting, such as displaying detailed information or performing further analysis.
+
+### 2. Finding the Planet Orbiting the Hottest Star
+#### Approach
+To identify the exoplanet orbiting the hottest star, I followed this strategy:
+1.	Iterate through the exoplanets dataset.
+2.	For each exoplanet, compare its host star’s temperature (`hostStarTempK`) with the currently stored hottest temperature.
+3.	If the current exoplanet’s host star temperature is higher:
+    - Replace the stored exoplanet with the current one.
+4.	Continue until the end of the dataset. At that point, the stored exoplanet will be the one orbiting the hottest star.
+
+#### Implementation
+The following Swift function compares the current hottest exoplanet with a new one and updates accordingly:
 
 ```swift
 private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exoplanet) -> Exoplanet? {
@@ -210,21 +295,36 @@ private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exop
 }
 ```
 
-In the execution, we will see the exoplanet orbiting the hottest star:
-- Planet: V391 Peg b
-- Temperature: 29300K
+#### Execution Result
+Using this approach, the exoplanet orbiting the hottest star is identified as follows:
+- **Exoplanet**: V391 Peg b
+- **Host Star Temperature**: 29300 K
 
-### 3. Generate a timeline of planet discoveries grouped by size categories.
-In order to create the discovery timeline, I categoryze every planet that has jupider radius magnitude and dicovery year. I am filtering by these two must cause is the required data to be able to create a timeline of discovered exoplanets categorized by size.
+### 3. Generating a Timeline of Planet Discoveries Grouped by Size Categories
+#### Approach
+To create a timeline of planet discoveries grouped by size categories (small, medium, large), the following approach is used:
 
-I use a dictionary (key/value) where for every key (year when any exoplanet has been discovered) has an counter structure with the exoplanets discovered in that year by size category (small, medium, large).
+1.	**Filter Data**: Only include exoplanets with valid `RadiusJpt` (Jupiter radius magnitude) and `DiscoveryYear`.
+2.	**Categorize by Size**: Classify exoplanets based on their radius into the following categories:
+    - **Small**: Radius < 0.5 Jupiter radii.
+    - **Medium**: 0.5 ≤ Radius ≤ 2 Jupiter radii.
+    - **Large**: Radius > 2 Jupiter radii.
+3.	**Group by Year**: Use a dictionary where:
+    - The **key** is the discovery year.
+    - The **value** is a structure counting the number of exoplanets discovered in that year for each size category.
+4.	**Iterate Through the Dataset**: For each exoplanet:
+    - Check if it has valid size and discovery year data.
+    - Categorize its size.
+    - Update the counts in the corresponding year entry in the dictionary.
 
+#### Implementation
 ```swift
 if let record = createTimelineRecord(for: exoplanet) {
     let currentCount = timeline[record.year] ?? .zero
     timeline[record.year] = currentCount.adding(record.sizes)
 }
 ```
+
 ```swift
 private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
     guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
@@ -233,7 +333,12 @@ private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes
 }
 ```
 
-I use [SizeCategory](Sources/Domain/Models/SizeCategory.swift) to encapsulate the exoplanets categorization responsability.
+#### Encapsulation of Exoplanet Categorization with SizeCategory
+To encapsulate the responsibility of categorizing exoplanets by size, I use the [SizeCategory](Sources/Domain/Models/SizeCategory.swift) structure. This approach centralizes the logic for size categorization, making the code more modular, reusable, and easier to maintain.
+
+#### SizeCategory Implementation
+The SizeCategory structure defines categories and provides methods to classify exoplanets based on their radius `RadiusJpt`:
+
 ```swift
 enum SizeCategory {
     case small
@@ -267,7 +372,28 @@ enum SizeCategory {
 }
 ```
 
-I use [PlanetSizeCount](Sources/Domain/Models/PlanetSizeCount.swift) to encapsulate yearly discovery timeline tracking responsability.
+#### Example Output
+The output of the timeline generation using SizeCategory is a dictionary where each year contains counts for each category, mapped to the SizeCategory enum:
+
+```json
+[
+    2010: [.small: 12, .medium: 35, .large: 5],
+    2011: [.small: 18, .medium: 40, .large: 7],
+]
+```
+
+#### Benefits of Using SizeCategory
+1. **Centralized Logic**: Categorization is handled in one place, making changes straightforward.
+2. **Readability**: Code becomes easier to understand with the encapsulated logic.
+3. **Reusability**: The SizeCategory structure can be used anywhere size-based classification is needed.
+4. **Type Safety**: Using an enum ensures only valid categories are used.
+
+#### Encapsulation of Yearly Discovery Timeline Tracking with PlanetSizeCount
+To encapsulate the responsibility of tracking yearly discovery timelines grouped by planet size, I use the [PlanetSizeCount](Sources/Domain/Models/PlanetSizeCount.swift) structure. This approach centralizes the logic for maintaining and updating discovery counts, making the code cleaner and more maintainable.
+
+#### PlanetSizeCount Implementation
+The PlanetSizeCount structure maintains counts of exoplanets discovered in each size category for a given year. It provides methods to increment counts and retrieve the data.
+
 ```swift
 public struct PlanetSizeCount: Equatable {
     public let small: Int
@@ -294,7 +420,18 @@ public struct PlanetSizeCount: Equatable {
 }
 ```
 
-In the execution, we will see the exoplanets discovery timeline by size. I have [formated](Sources/Presentation/Formatter/TimelineFormatter.swift) the output to make it easier to read:
+#### Usage in the Timeline Generation Logic
+By using PlanetSizeCount, the logic for yearly tracking is greatly simplified. Each year is associated with a PlanetSizeCount object, and updates to counts are handled via its methods.
+
+#### Benefits of Using PlanetSizeCount
+1.	**Encapsulation**: All size count logic is contained within the PlanetSizeCount structure, reducing complexity in the timeline generation code.
+2.	**Reusability**: The structure can be reused for other scenarios requiring size-based count tracking.
+3.	**Extensibility**: Future enhancements, like adding new size categories or additional metrics, can be implemented directly within PlanetSizeCount.
+4.	**Readability**: Code becomes more intuitive by abstracting size count operations into a dedicated structure.
+
+#### Execution Result: Exoplanets Discovery Timeline by Size
+The discovery timeline of exoplanets, categorized by size, is generated during execution. To improve readability, I have formatted the output using the [TimelineFormatter](Sources/Presentation/Formatter/TimelineFormatter.swift).
+
 ```yaml
 Year   Small  Medium  Large
 ---------------------------
@@ -320,22 +457,24 @@ Year   Small  Medium  Large
 ```   
 
 ## Methodology
-
 ### Initial Approach
-Initially, the easier first idea would be iterating over the dataset separately for each goal:
-1. Identify orphan planets (those with `typeFlag == 3`).
-2. Find the planet orbiting the hottest star (the one with highest `hostStarTempK`).
-3. Generate a timeline of exoplanet discoveries grouped by size categories (`small`, `medium`, `large`).
+The initial implementation involved separate iterations over the dataset for each goal:
+1.	**Identify Orphan Planets**: Loop through the dataset to find planets with typeFlag == 3.
+2.	**Find the Hottest Star’s Planet**: Iterate to find the exoplanet with the highest hostStarTempK.
+3.	**Generate the Discovery Timeline**: Iterate again to categorize exoplanets by size and group them by discovery year.
 
-Each of these operations required a full loop over the dataset, resulting in three separate iterations. While this approach is functionally correct, it is suboptimal in terms of performance, as it performs redundant work.
+While this approach is straightforward and functionally correct, it requires **three full passes** over the dataset. This results in redundant computations, which, though manageable for small datasets, can become inefficient for larger datasets.
 
 ### Optimized Approach
-Upon reflection, I realized that all three goals could be achieved within a single loop through the dataset. By combining the logic for these operations:
-- We identify orphan planets as we iterate.
-- Track the hottest star's planet dynamically by comparing temperatures.
-- Incrementally build the discovery timeline for each planet with valid discovery data.
+To improve performance, I optimized the methodology by combining all three operations into a **single iteration** through the dataset:
+- **Orphan Planets**: Check if the planet’s typeFlag is 3 and add it to a collection of orphan planets.
+- **Hottest Star’s Planet**: Dynamically track the exoplanet with the highest hostStarTempK during the iteration.
+- **Discovery Timeline**: For each planet with valid discovery data (RadiusJpt and DiscoveryYear), categorize its size (small, medium, large) and update the timeline.
 
-This optimized approach significantly reduces the number of iterations over the dataset while maintaining the same `O(n)` asymptotic complexity. However, in real-world scenarios, reducing the number of loops improves runtime efficiency and can lead to measurable performance gains, especially with larger datasets.
+#### Key Benefits of the Optimized Approach
+- **Single Loop**: All operations are performed during a single traversal of the dataset, reducing redundant work.
+- **Improved Efficiency**: Although both approaches have an **O(n)** complexity, reducing the number of loops improves runtime efficiency, especially for larger datasets.
+- **Clean Codebase**: Consolidating operations into a single loop simplifies the code, reducing potential for duplication and errors.
 
 ```swift
 public func processExoplanets() async throws -> ProcessedExoplanetResult {
@@ -366,25 +505,51 @@ public func processExoplanets() async throws -> ProcessedExoplanetResult {
 }
 ```
 
-### Implementation Benefits
-**Reduced Redundancy:** Combining the operations eliminates the need for multiple loops, saving computational resources.
-   
-**Improved Performance:** Although the asymptotic complexity remains the same, fewer iterations translate to faster execution in practical terms.
+#### Results
+Using the optimized approach:
+1.	**Orphan Planets**: Identified in the same pass.
+2.	**Hottest Star**: Dynamically tracked during the iteration.
+3.	**Discovery Timeline**: Built incrementally within the same loop.
 
-**Clean and Maintainable Code:** Consolidating the logic into a single loop makes the code easier to read, maintain, and debug.
+#### Implementation Benefits
+1.	**Reduced Redundancy**:
+    - By combining the operations into a single loop, the need for multiple iterations over the dataset is eliminated.
+	- This saves computational resources and minimizes redundant data processing.
+2.	**Improved Performance**:
+	- Although the asymptotic complexity remains O(n), fewer iterations over the dataset result in measurable performance improvements in real-world scenarios.
+	- Especially with larger datasets, this optimization significantly reduces runtime overhead.
+3.	**Clean and Maintainable Code**:
+	- Consolidating the logic into a single loop enhances readability and maintainability.
+	- It reduces code duplication and centralizes dataset processing logic, making the code easier to debug and extend.
 
-### Conclusion
-This refined methodology achieves all three objectives efficiently within a single iteration of the dataset. It highlights the importance of balancing theoretical computational complexity with real-world performance considerations. By optimizing the approach, we ensure the system remains performant and scalable for larger datasets.
+#### Conclusion
+This refined methodology efficiently achieves all three objectives—identifying orphan planets, tracking the hottest star’s exoplanet, and generating the discovery timeline—within a single dataset iteration.
+
+By balancing theoretical computational complexity with practical performance considerations, the approach ensures:
+- Optimal use of resources.
+- Scalability to handle larger datasets effectively.
+- A cleaner and more maintainable codebase.
+
+This optimization serves as an example of how thoughtful design can bridge the gap between academic theory and practical application.
 
 ## Technical Details
-
 ### AWS Secrets Manager
-To avoid expose the **API url** directly to the code, as well as the **Docker credentials** and **Google API keys**, I have chose for the option to create an externalised service that vault and provide these details.
+To enhance security and avoid exposing sensitive information such as the **API URL**, **Docker credentials**, and **Google API keys** in the codebase, I opted to use **AWS Secrets Manager** to externalize and securely store these details.
 
-Then I just have to store the **IAM credentials** in my **GitHub Repository Secrets**, and use them by GitHub Actions to login into AWS Secrets Manager, and retrieve the two Secrets that GitHub Actions require for the CI/CD Flow I have setup: **exoplanets-analyzer-api-url-test** for testing, and **docker-credentials** to login, scan vulnerabilities and push to Docker Hub the new image.
+This setup integrates seamlessly with **GitHub Actions** for CI/CD workflows by retrieving the required secrets during the build and deployment processes.
 
-For more security, I have created a custom **IAM policy** that only has read access only to both Secrets. I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
+#### Setup and Workflow
+1.	**Storing IAM Credentials**:
+    - The **IAM credentials** are stored in the **GitHub Repository Secrets**.
+	- These credentials allow GitHub Actions to log in to AWS Secrets Manager and fetch the secrets needed for the CI/CD pipeline.
+2.	**Secrets Used in the CI/CD Workflow**:
+	- exoplanets-analyzer-api-url-test: Used for testing.
+	- docker-credentials: Used to authenticate, scan vulnerabilities, and push the Docker image to Docker Hub.
+3.	**Custom IAM Policy**:
+	- For enhanced security, I created a custom IAM policy granting **read-only access** to the specific secrets.
+	- An IAM user (github-actions-user) was created and assigned this policy to ensure minimal resource access.
 
+#### IAM Policy Example:
 ```json
 {
     "Version": "2012-10-17",
@@ -403,110 +568,89 @@ For more security, I have created a custom **IAM policy** that only has read acc
     ]
 }
 ```
+
+#### GitHub Actions Integration
+- The **Access Key ID** and **Secret Access Key** of github-actions-user are added to **GitHub Repository Secrets**.
+- These credentials are injected into the CI/CD pipeline to securely interact with AWS Secrets Manager.
+
+#### AWS Secrets Configuration
+1.	**Region Selection**:
+The AWS Secrets Manager is deployed in the `us-west-2` region (closest to Arizona) to minimize latency.
+2.	**Secrets Created**:
+ - exoplanets-analyzer-api-url-prod: For production environment URLs and configurations.
+ - exoplanets-analyzer-api-url-dev: For development environment URLs and configurations.
+ - exoplanets-analyzer-api-url-test: For testing environment URLs and configurations.
+ - docker-credentials: For building and pushing Docker images to Docker Hub.
+
+#### Visual Overview
+#### IAM User
+A dedicated **IAM user** (github-actions-user) is created with restricted access based on the custom policy.
+
 ![IAM Users](https://github.com/user-attachments/assets/28cb095e-1259-4c62-adad-e3b981bb3caf)
 
-I have set up the **github-actions-user** by it's **Access key ID** and **Secret access key** in the GitHub Repository Secrets. Having these credentials injected and safe to be used in the CI flow.
-
-I have configured the AWS Secrets Manager to be deployed in us-west-2 region since this is the closest one from Arizona, and latency will be reduced. I have set up 4 secrets:
-- **exoplanets-analyzer-api-url-prod**: URL's and required environment setup for production.
-- **exoplanets-analyzer-api-url-dev**: URL's and required environment setup for development.
-- **exoplanets-analyzer-api-url-test**: URL's and required environment setup for testing.
-- **docker-credentials**: To be able to build and push the new Image to Docker Hub.
+#### AWS Secrets
+AWS Secrets Manager is configured to store the required secrets.
 
 ![AWS Secrets](https://github.com/user-attachments/assets/25c485a4-bea3-4e6f-a7ac-2fa5aa4a49d9)
 
+#### Benefits of This Approach
+1.	**Enhanced Security**:
+Sensitive credentials are externalized and securely managed by AWS Secrets Manager.
+2.	**Minimized Exposure**:
+Only the github-actions-user with limited read-only access can retrieve secrets.
+3.	**Efficient CI/CD Workflow**:
+Secrets are seamlessly injected into the GitHub Actions pipeline, reducing manual intervention.
+4.	**Scalability**:
+This setup can easily be extended to manage additional secrets or integrate with new environments.
+
 ### GitHub Actions (CI/CD Flow)
-The quality flow I have been working with is: Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes.
+The quality flow I implemented follows this pipeline:
+**Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes**
+As a best practice, the main branch is configured to be **protected** and restricted to changes only via pull requests. However, since I have been working solo on this project, I temporarily disabled this requirement to streamline development.
 
-In GitHub the main branch should be protected and restricted to **add code only by Pull Requests as a good practice**. Since I have been coding only by myself, I have turned this option off to do not require PR every time.
+#### Workflow Details
+1. **[validate-pr.yml](.github/workflows/validate-pr.yml):**
+    - **Trigger**: Automatically triggered for every pull request.
+    - **Purpose**: Ensures code quality by running tests on the proposed changes.
+2. **[build-and-deploy.yml](.github/workflows/build-and-deploy.yml):**
+    - **Trigger**: Automatically triggered when changes are pushed to the main branch.
+    - **Steps**:
+        - Runs the **test-swift.yml** workflow to ensure no broken code is published.
+	    - Retrieves **Docker credentials** from AWS Secrets Manager.
+	    - Builds the Docker image.
+	    - Performs a vulnerability scan using **Docker Scout**. The process halts if critical or high vulnerabilities are detected.
+	    - Publishes the Docker image to **Docker Hub**.
+3. **[test-swift.yml](.github/workflows/test-swift.yml):**
+    - **Trigger**: Reusable job called by both validate-pr.yml and build-and-deploy.yml.
+    - **Steps**:
+	    - Retrieves required environment variables from AWS Secrets Manager for testing.
+	    - Executes all Swift tests.
+	    - Generates and stores testing artifacts.
 
-- **[validate-pr.yml](.github/workflows/validate-pr.yml):** This job is triggered for every pull request made. It triggers the testing job.
+#### Optimization: Job Cancellation Strategy
+- The workflows are configured to use a **FIFO (First In, First Out) cancellation strategy**.
+- If a new job is triggered while the previous one is still running, the earlier job is automatically canceled.
+- **Use Case**:
+    - This approach is efficient for individual workflows to save time and resources.
+    - In collaborative teams with multiple PRs, this strategy may require adjustment to avoid prematurely canceling ongoing workflows.
 
-- **[build-and-deploy.yml](.github/workflows/build-and-deploy.yml):**
-  This job is triggered when any change has been done into **main branch**.
-  - Triggers the test job, as a good practice to skip publish a broke code in dockerhub.
-  - Retrieves the AWS secrets to get the Docker credentials.
-  - Build the docker image
-  - Perform vulnerability scan by docker scout. It will stop the process if finds any critical or high vulnerability.
-  - Push the image to DockerHub.
+#### CI/CD Workflow Steps
+1. **Pull Request Validation:**
+    - Ensures only tested and validated code can be merged into the main branch.
+2. **Main Branch Build & Deploy:**
+    - Automatically tests, builds, scans, and publishes changes to Docker Hub for deployment.
+3. **Swift Testing:**
+    - Centralized and reusable job to ensure code reliability.
 
-- **[test-swift.yml](.github/workflows/test-swift.yml):** This is a reutilizable job to perform the swift testing. It is called by previous both jobs.
-  - Retrieves the AWS Secrets and set up the required env vars for testing.
-  - Perform the testing.
-  - Creates the testing artifacts.
-
-Notice the jobs are set up to cancell by fifo strategy the current jobs if a new job has been triggered. This is a good approach for me working alone to save resources and time. But maybe it's not as helpfully in a collaborative team with several PR's at same time.
-
-```yaml
-name: Build and Deploy
-
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: read
-  packages: write
-
-concurrency:
-  group: build-and-deploy
-  cancel-in-progress: true
-
-jobs:
-  test-code:
-    uses: ./.github/workflows/test-swift.yml
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
-  build-scan-and-push:
-    name: Build, Scan, and Push Docker Image
-    runs-on: ubuntu-latest
-    needs: test-code
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-      
-      - name: Retrieve AWS Secrets
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          docker_secrets=$(aws secretsmanager get-secret-value \
-            --secret-id docker-credentials \
-            --query SecretString \
-            --output text)
-    
-          echo "USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)" >> $GITHUB_ENV
-          echo "PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)" >> $GITHUB_ENV
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ env.USERNAME }}
-          password: ${{ env.PASSWORD }}
-    
-      - name: Build Docker Image for ExoplanetsTerminal
-        run: |
-          docker build -t rpairo/exoplanets-terminal:latest .
-      
-      - name: Scan Docker Image for ExoplanetsTerminal
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: rpairo/exoplanets-terminal:latest
-          only-severities: critical,high
-          exit-code: true
-      
-      - name: Push Docker Image for ExoplanetsTerminal
-        if: success()
-        run: |
-          docker push rpairo/exoplanets-terminal:latest
-```
+#### Benefits of This Workflow
+1.	**Automated Quality Assurance:**
+    - Testing and validation are automatically performed for each pull request and main branch update.
+2.	**Security Integration:**
+    - Vulnerability scanning is integrated into the build process to ensure secure Docker images.
+3.	**Resource Efficiency:**
+	- FIFO job cancellation optimizes resources for solo development.
+4.	**Scalability:**
+	- The modular structure (e.g., reusable test-swift.yml) facilitates easy scaling and collaboration in team environments.
 
 #### Test job performance
 ![GitHub Actions](https://github.com/user-attachments/assets/4d8fbb6d-a2ec-4ffd-ba70-d41a487dfc1d)
@@ -515,19 +659,15 @@ jobs:
 ![GitHub Actions Chain](https://github.com/user-attachments/assets/be8183b7-3cd6-40bd-b1be-fc1c44976538)
 
 ### Dockerfile
-This [Dockerfile](Dockerfile) file contains the instructions to build the a Docker Image based on my code and requirements.
+This [Dockerfile](Dockerfile) contains the instructions to build a Docker image for the Exoplanets Analyzer application based on Swift. It incorporates best practices to ensure security, reproducibility, and efficiency.
 
-In this case, I could use the command:
-```dockerfile
-RUN git clone <repository-url> /app
-```
-To make the image standalone. This means you could create a Docker image using just the `Dockerfile`, without requiring the codebase to be present. During the image build process, the source code would be fetched directly from code repository. However, this approach exposes the repository URL, which can raise security concerns.
-
-Alternatively, I chose to use the command:
-```dockerfile
-COPY . .
-```
-This approach ensures that the exact version of the code tested during the CI/CD process is included in the image, without exposing any repository URL.
+#### Key Design Decisions
+1.	**Avoiding Security Risks with Repository URL:**
+	- Using RUN git clone <repository-url> /app could make the image standalone, allowing it to fetch the source code directly from the repository during the build process.
+	- Drawback: This exposes the repository URL, raising potential security concerns.
+2.	**Ensuring Reproducibility:**
+	- Using `COPY . .` ensures that the exact version of the code tested during CI/CD is included in the image, avoiding discrepancies between the development environment and the final image.
+	- This approach does not expose sensitive repository details.
 
 ```dockerfile
 # ---------- STAGE 1: BUILD ----------
@@ -553,20 +693,49 @@ USER swiftuser
 COPY --from=build /build/.build/release/ExoplanetsTerminal /app/ExoplanetsTerminal
 
 ENTRYPOINT ["./ExoplanetsTerminal"]
-
 ```
 
-In the Dockerfile, I chose to use swift:6.0.3 as the base image to ensure that all the required dependencies for building my Swift Package Manager project are available.
+#### Explanation of the Dockerfile Stages
+1.	**Stage 1: Build**
+	- **Base Image:** swift:6.0.3 is used to provide all dependencies required for building the Swift Package Manager project.
+	- **Working Directory:** The /build directory is used as the working directory during the build stage.
+	- **Copy Code:** The `COPY . .` command copies the codebase into the container.
+	- **Build Command:** swift build --configuration release compiles the project in release mode, creating the executable in the .build/release/ directory.
+2.	**Stage 2: Runtime**
+	- **Base Image:** swift:6.0.3-slim is used to reduce the final image size by including only the minimal runtime dependencies.
+	- **User Security:**
+	    - Creates a non-root user (swiftuser) to run the application securely.
+	    - The USER swiftuser directive switches to this user for running the application.
+	- **Copy Executable:** The built executable from the first stage is copied into /app/ExoplanetsTerminal.
+	- **Entry Point:** The ENTRYPOINT directive ensures the container runs the application directly.
 
-After building the executable, Docker creates a second image using swift:6.0.3-slim as the base image, which contains only the minimal dependencies required to run the executable. This approach ensures that the final image is smaller, as it includes only the built executable and the essential runtime environment.
+#### Benefits of the Multistage Build
+1.	**Smaller Final Image:**
+    - The build environment and its dependencies are excluded from the final runtime image, significantly reducing its size.
+2.	**Security:**
+    - By creating a non-root user (swiftuser) and running the application under this user, potential vulnerabilities are mitigated.
+3.	**Reproducibility:**
+    - Using `COPY . .` ensures the exact version of the code tested during CI/CD is included in the image.
 
 ### Docker Hub
-The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) by the **rpairo/exoplanets-terminal** coordenates, for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+The Docker images for the **Exoplanet Analyzer Terminal** are stored in the [Exoplanet Analyzer Terminal repository](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) on Docker Hub. The images can be accessed and deployed using the following coordinates:
+
+rpairo/exoplanets-terminal
+
+#### Purpose
+This executable targets the **ExoplanetsTerminal**, a terminal-based application that processes and displays key results from the exoplanet dataset, including:
+1.	**Orphan Exoplanets:** Identifies and lists orphan planets.
+2.	**Hottest Star’s Exoplanet:** Displays the exoplanet orbiting the hottest star.
+3.	**Discovery Timeline by Sizes:** Generates a timeline of exoplanet discoveries.
 
 ![DockerHub](https://github.com/user-attachments/assets/03708b55-78c1-4f6e-9616-09d46696e910)
 
 ### API URL Abstraction
-Following the good practices, the sensible information is abstracted from the code. It is injected by env vars. The **Infrastructure layer** will retrieve and check them by the [ConfigurationFactory](Sources/Infrastructure/Environment/ConfigurationFactory.swift).
+To adhere to best practices, sensitive information such as API URLs is abstracted from the code and injected via environment variables. This ensures that configuration details are managed securely and are not hardcoded.
+The Infrastructure Layer handles the retrieval and validation of these environment variables using the [ConfigurationFactory](Sources/Infrastructure/Environment/ConfigurationFactory.swift).
+
+#### ConfigurationFactory Implementation
+The ConfigurationFactory is responsible for creating an AppConfiguration object by reading environment variables and validating their presence. If any required variable is missing, it throws a ConfigurationError.
 
 ```swift
 public struct ConfigurationFactory {
@@ -596,7 +765,12 @@ public struct ConfigurationFactory {
         )
     }
 }
+```
 
+#### Error Handling
+An enumeration ConfigurationError defines error cases for missing environment variables. It conforms to the LocalizedError protocol to provide user-friendly error messages.
+
+```swift
 public enum ConfigurationError: Error, LocalizedError {
     case missingEnvironmentVariable(String)
 
@@ -609,8 +783,31 @@ public enum ConfigurationError: Error, LocalizedError {
 }
 ```
 
+#### Environment Variables
+The ConfigurationFactory reads the following environment variables:
+- **BASE_URL**: The base URL for the API.
+- **PATH_SEGMENT**: The path segment for the exoplanet API.
+- **ENDPOINT_EXOPLANETS**: The specific endpoint for fetching exoplanet data.
+
+#### Benefits of This Approach
+1.	**Security:**
+    - Sensitive information is not hardcoded into the application codebase.
+	- Credentials and URLs can be managed securely via environment variables.
+2.	**Flexibility:**
+	- The configuration can be easily modified without requiring changes to the code.
+	- Different environments (e.g., development, testing, production) can have unique configurations.
+3.	**Error Handling:**
+	- Missing or invalid environment variables are detected early with clear error messages.
+4.	**Scalability:**
+	- Additional configuration parameters can be seamlessly added to the AppConfiguration object.
+
 ### Dependency Injection
-To implement proper scalability, maintanability and building disacoplishment, I have worked with the inverse dependency approach. This is really powerful and versatile when it has a [dependency injector](Sources/Composition/DependencyInjection/DIContainer.swift) to abstract the instances creation responsability. Improving readability, code clearity and testability.
+To enhance scalability, maintainability, and modularity, the project uses **Dependency Injection (DI)**. This design pattern follows the **Inversion of Control (IoC) principle**, where dependencies are provided rather than created within components. A dedicated [Dependency Injector](Sources/Composition/DependencyInjection/DIContainer.swift) (DIContainer) manages the responsibility for instance creation and lifecycle management.
+
+This approach improves **readability**, **code clarity**, and **testability** by decoupling components from their dependencies.
+
+#### DIContainer Implementation
+The DIContainer is a singleton-based dependency injector that registers and resolves services at runtime. It stores registered implementations in a key-value dictionary and uses generic type inference to resolve dependencies.
 
 ```swift
 public class DIContainer: DependencyInjection {
@@ -645,21 +842,67 @@ enum DIContainerError: Error {
 }
 ```
 
-The work flow is simple: first you **register the implementation for determinate type**:
+#### Workflow
+1.  **Registering a Service Implementation:**
+The register method associates a specific implementation with a protocol or type.
+
 ```swift
 try container.register(URLSessionHTTPClient(), for: HTTPClient.self)
 ```
 
-To later **resolve the dependency** serving the implementation based on a certain type:
+2.	**Resolving a Dependency:**
+The resolve method retrieves the registered implementation for a given protocol or type.
+
 ```swift
 try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
 ```
 
-The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
+#### How It Works
+1.	Registration:
+    - The service implementation is stored in the services dictionary.
+	- The **key** is the string representation of the type (String(describing: protocolType)).
+	- The **value** is the actual implementation instance.
+2.	Resolution:
+	- The service is fetched from the services dictionary using the type’s string representation as the key.
+	- Generic type inference ensures the correct service type is returned.
+3.	Reset:
+	- The reset method clears all registered services, which is particularly useful for testing or application shutdown.
 
+#### Example Use Case
+1. **Registering Dependencies:**
+```swift
+let container = DIContainer.shared
+try container.register(URLSessionHTTPClient(), for: HTTPClient.self)
+try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
+```
 
-## Network Retry Handler
-In case the request gets any issue, I have implemented a system that will assure to retry the request by certain times. This improves the user experience by not letting lost the flow in case something goes wrong at the first attempt.
+2. **Resolving Dependencies:**
+```swift
+let dataSource: ExoplanetDataSource = try container.resolve()
+```
+
+3. **Resetting Dependencies:**
+```swift
+container.reset()
+```
+
+#### Benefits
+1.	**Scalability:**
+    - New dependencies can be added without modifying existing components.
+2.	**Maintainability:**
+	- Components are loosely coupled, making the system easier to refactor or extend.
+3.	**Testability:**
+	- Mocks or stubs can be registered in the DIContainer for testing purposes, isolating components from real implementations.
+4.	**Centralized Management:**
+	- All dependencies are managed in a single place, improving the structure and clarity of the codebase.
+5.	**Runtime Flexibility:**
+	- The service implementations can be swapped dynamically at runtime, enabling different configurations for development, testing, or production.
+
+### Network Retry Handler
+To enhance user experience and ensure reliability, I implemented a **Network Retry Handler**. This system retries a network operation multiple times if it encounters errors, reducing the impact of transient issues such as network instability.
+
+#### Implementation
+The NetworkRetryHandler conforms to a RetryableOperation protocol and uses a configuration object (RetryConfiguration) to define retry behavior. It retries the given asynchronous operation up to the configured number of attempts, with a delay between attempts.
 
 ```swift
 public struct NetworkRetryHandler: RetryableOperation {    
@@ -686,91 +929,92 @@ public struct NetworkRetryHandler: RetryableOperation {
 }
 ```
 
-## Clean architecture
-This file has the project structure and targets definitions. I have set up one executable **ExoplanetsTerminal** and one library **ExoplanetsAPI**: 
+#### Benefits
+1. **Improved Reliability:**
+    - Automatically retries transient network failures, reducing disruptions to the user experience.
+2. **Customizable Behavior:**
+	- Allows configuration of the number of retry attempts and the delay between attempts.
+3. **Error Handling:**
+	- Captures and rethrows the last error if all retries fail, providing detailed context for debugging.
+4. **Asynchronous Support:**
+	- Designed to work seamlessly with Swift’s async/await model.
 
-**ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
+### Clean Architecture
+The **Exoplanet Analyzer** project adheres to **Clean Architecture** principles to maintain scalability, maintainability, and separation of concerns. It is structured into layers, each with defined responsibilities and dependencies. The project is configured using [Package.swift](Package.swift) with two main targets:
 
-**ExoplanetsTerminal**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet data results.
+1. ExoplanetsTerminal:
+    - A terminal-based executable that fetches, processes, and formats results from the exoplanets API for display in the terminal.
+2. ExoplanetsAPI:
+    - A library providing an API layer for Swift Package Manager consumers, enabling them to fetch and process exoplanet data.
 
-The projects is structured by [Package.swift](Package.swift) following the clean architecture conventions and good practices. What it means that the inner layers are agnostic to the above layers. You can notice the dependencies by the **dependencies: ["layer"]** parameter in the project configuration. This limite the accesibility that every layer can has.
+#### Project Structure
+The project is organized into the following layers, following clean architecture conventions:
+	
+1.	**Domain**
+	- **Dependencies**: None
+	- **Purpose**: Core business logic, completely agnostic of the rest of the project.
+	- **Location**: Sources/Domain
+2.	**Data**
+	- **Dependencies**: Domain
+	- **Purpose**: Handles data consumption logic and data sources.
+	- **Location**: Sources/Data
+3.	**Infrastructure**
+	- **Dependencies**: Data
+	- **Purpose**: Configures and manages external connections (e.g., network, databases).
+	- **Location**: Sources/Infrastructure
+4.	**Presentation**
+	- **Dependencies**: Domain
+	- **Purpose**: Prepares and presents results obtained from the Domain layer.
+	- **Location**: Sources/Presentation
+5.	**Composition**
+	- **Dependencies**: Domain, Data, Presentation, Infrastructure
+	- **Purpose**: Manages project composition, including dependency injection and build flow.
+	- **Location**: Sources/Composition
+6.	**ExoplanetsTerminal**
+	- **Dependencies**: Composition, Presentation
+	- **Purpose**: Provides a terminal interface to display processed data.
+	- **Location**: Sources/Main
+7.	**ExoplanetsAPI**
+	- **Dependencies**: Composition, Presentation, Domain
+	- **Purpose**: Exposes a library interface for consuming the exoplanet data, abstracting internal logic through DTOs.
+	- **Location**: Sources/API
+8.	**Tests**
+	- **Dependencies**: All layers (Data, Domain, Presentation, Composition, Infrastructure, ExoplanetsAPI)
+	- **Purpose**: Contains unit and integration tests for all layers.
+	- **Location**: Tests
 
-- **Domain**: Does not has any dependency. It contains the core business logic. It is agnostic from the rest of the proyect.
-- **Data**: Has Domain dependency. It contains the data consumtion required logic for the aplication.
-- **Infrastructure**: Has Data dependency. It contains the logic and configurations to manage the project connections.
-- **Presentation**: Has Domain dependency. It contains the logic to prepare and present the results obtainted from domain.
-- **Composition**: Has Domain, Data, Presentation and Infrastructure dependencies. It takes care of the project building. It contains the dependency injector and the project build flow.
-- **ExoplanetsTerminal**: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
-- **ExoplanetsAPI**: Has Composition, Presentation and Domain dependencies. It provides an interface to propagate the expolanets information to library consumers, exposing DTO's to hide the inner logic.
+#### Key Principles
+1.	**Layered Structure**:
+	- Each layer has a specific purpose and limited dependencies, promoting modularity and clear separation of concerns.
+2.	**Dependency Inversion**:
+	- Inner layers (e.g., Domain) define protocols or interfaces.
+	- Outer layers (e.g., Infrastructure) implement these protocols.
+	- This ensures inner layers are independent of implementation details.
+3.	**Limited Access**:
+	- Dependencies between layers are controlled via the dependencies parameter in Package.swift.
 
-```swift
-// swift-tools-version:5.9
-import PackageDescription
+#### Communication Between Layers
+- Communication between layers occurs via **Dependency Inversion**:
+    - Inner layers expose protocols or abstract interfaces.
+    - Outer layers implement these interfaces and provide them to the inner layers via Dependency Injection.
 
-let package = Package(
-    name: "exoplanet-analyzer",
-    platforms: [
-        .macOS(.v12)
-    ],
-    products: [
-        .executable(
-            name: "ExoplanetsTerminal",
-            targets: ["ExoplanetsTerminal"]
-        ),
-        .library(
-            name: "ExoplanetsAPI",
-            targets: ["ExoplanetsAPI"]
-        )
-    ],
-    targets: [
-        .target(
-            name: "Domain",
-            dependencies: [],
-            path: "Sources/Domain"
-        ),
-        .target(
-            name: "Data",
-            dependencies: ["Domain"],
-            path: "Sources/Data"
-        ),
-        .target(
-            name: "Infrastructure",
-            dependencies: ["Data"],
-            path: "Sources/Infrastructure"
-        ),
-        .target(
-            name: "Presentation",
-            dependencies: ["Domain"],
-            path: "Sources/Presentation"
-        ),
-        .target(
-            name: "Composition",
-            dependencies: ["Data", "Domain", "Presentation", "Infrastructure"],
-            path: "Sources/Composition"
-        ),
-        .target(
-            name: "ExoplanetsAPI",
-            dependencies: ["Composition", "Presentation", "Domain"],
-            path: "Sources/API"
-        ),
-        .executableTarget(
-            name: "ExoplanetsTerminal",
-            dependencies: ["Composition", "Presentation"],
-            path: "Sources/Main"
-        ),
-        .testTarget(
-            name: "Tests",
-            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure", "ExoplanetsAPI"],
-            path: "Tests"
-        )
-    ]
-)
-```
+#### Benefits of Clean Architecture
+1.	**Scalability**:
+    - Layers can evolve independently, enabling easy addition of new features or services.
+2.	**Testability**:
+	- Decoupling logic into layers allows for isolated unit testing.
+3.	**Maintainability**:
+	- Clear separation of concerns makes the codebase easier to understand and refactor.
+4.	**Flexibility**:
+	- Layers can be replaced or reused with minimal impact on other parts of the system.
 
-The comunication between these layers occurs by the inversion of dependencies, where the inner layer exposes the signature or protocol, and the upper layer manages the implementation.
+### Composition Layer
+The **Composition Layer** is responsible for building and initializing the project. It ensures that all required dependencies are registered and properly configured, following the principles of **Dependency Injection** and **Inversion of Control**.
 
-## Composition Layer
-The composition layer takes care of the project building, assuring to have registered and initialized any dependency that the project can requires.
+This layer orchestrates the setup of the entire application, ensuring that components are modular, reusable, and testable.
+
+#### AppComposition Implementation
+The AppComposition struct implements the ApplicationBuilder protocol. It uses the **Dependency Injection Container** (DIContainer) to register services and their dependencies.
 
 ```swift
 public struct AppComposition: ApplicationBuilder {
@@ -850,16 +1094,39 @@ enum AppCompositionError: Error {
 }
 ```
 
-## API Exposition
-The **ExoplanetsAPI** target exposes the **ExoplanetAnalyzerAPIProtocol** interface to the library clients, this provides them the ways to request the information for *Orphan Exoplanets*, the *Hottest Star Exoplanet*, and the *Exoplanet Discovery Timeline*.
+#### Benefits of the Composition Layer
+1. **Centralized Configuration**:
+    - All dependency registrations and initializations are managed in one place, simplifying the build process.
+2. **Modular and Reusable**:
+	- Each component is loosely coupled, making it easy to test, extend, or replace.
+3. **Improved Readability**:
+	- Clear separation of responsibilities for each layer.
+4. **Error Safety**:
+	- Validates configurations and dependencies during the build process to prevent runtime failures.
+5. **Testability**:
+	- Dependencies can be mocked or swapped easily during testing.
 
+### API Exposition
+The ExoplanetsAPI target provides a public interface (ExoplanetAnalyzerAPIProtocol) that exposes functionality for library clients. This allows consumers to request data related to:
+1. **Orphan Exoplanets**
+2. **The Hottest Star’s Exoplanet**
+3. **Exoplanet Discovery Timeline**
+
+The API ensures a clean separation of internal logic and provides consumer-friendly DTOs (Data Transfer Objects) for interaction.
+
+#### ExoplanetAnalyzerAPIProtocol
+The protocol defines the contract for the API, listing the available methods:
 ```swift
 public protocol ExoplanetAnalyzerAPIProtocol {
     func getOrphanPlanets() -> [ExoplanetDTO]?
     func getHottestStarExoplanet() -> ExoplanetDTO?
     func getDiscoveryTimeline() -> YearlyPlanetSizeDistributionDTO?
 }
+```
 
+#### ExoplanetAnalyzerAPI Implementation
+The ExoplanetAnalyzerAPI struct conforms to ExoplanetAnalyzerAPIProtocol. It acts as a wrapper around the ExoplanetPresenting layer, ensuring that only properly formatted data (DTOs) is exposed to clients.
+```swift
 public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
     private let presenter: ExoplanetPresenting
 
@@ -884,7 +1151,11 @@ public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
         }
     }
 }
+```
 
+#### Default Factory Method
+The API includes a convenient static factory method, makeDefault, which initializes the API with the default application composition.
+```swift
 public extension ExoplanetAnalyzerAPI {
     static func makeDefault() async throws -> ExoplanetAnalyzerAPI {
         let appComposition: ApplicationBuilder = AppComposition()
@@ -895,5 +1166,56 @@ public extension ExoplanetAnalyzerAPI {
 }
 ```
 
-## Kubernetes
-I have approached several ways to implement the AWS Secrets Manager by Kubernets, facing blockers at the end of all of them. This seems to be happening cause Docker Desktop, wich feature I am using to run Kubernetes, its not compatible with many flows and capabilities due the encapsulation and not public exposition. Even furthemore, I have to port-forward kubernetes to be able to access in the API Rest service. Since this, I have prefered to provide the scripts and deploy file to make you able to deploy and test it.
+#### Key Components
+1. **ExoplanetPresenting**:
+    - The API delegates its logic to the ExoplanetPresenting interface, which is part of the Presentation layer.
+2. **DTO Mapping**:
+    - The ExoplanetMapper converts domain objects to ExoplanetDTO, ensuring that internal logic remains hidden.
+3. **Dependency Injection**:
+    - The makeDefault method uses the AppComposition and DIContainer to ensure the correct dependencies are injected.
+
+#### Benefits
+1. **Separation of Concerns**:
+	- Internal logic is encapsulated within the Presentation layer and accessed via the API.
+2. **Consumer-Friendly**:
+	- Exposes simple DTOs to library clients, abstracting away complexity.
+3. **Modularity**:
+	- The API is independent of implementation details, making it flexible and extensible.
+4. **Ease of Use**:
+	- The static makeDefault method simplifies initialization for clients.
+5. **Testability**:
+	- The API’s reliance on protocols allows for easy mocking in tests.
+
+### Kubernetes
+The implementation of **AWS Secrets Manager** integration with Kubernetes faced several blockers due to the use of **Docker Desktop** as the local Kubernetes environment. These challenges primarily stem from the limitations of Docker Desktop, such as:
+
+1. **Encapsulation Issues**:
+Docker Desktop’s Kubernetes setup does not expose public endpoints, restricting some configurations and integrations.
+
+2. **Port Forwarding Requirements**:
+To access the deployed API REST service, manual port forwarding is required, adding complexity to the setup.
+
+Due to these limitations, I opted to provide **scripts** and a **deployment file** to allow you to deploy and test the system in a more compatible Kubernetes environment, such as a production cluster.
+
+#### Challenges and Workarounds
+**Challenge: AWS Secrets Manager Integration**
+- **Issue**: Docker Desktop’s Kubernetes lacks native compatibility with AWS Secrets Manager due to its limited networking and encapsulation.
+- **Workaround**: Provide a script to manually create Kubernetes secrets and configure the deployment to use these secrets instead of relying on direct integration.
+
+**Challenge: Port Forwarding**
+- **Issue**: The Kubernetes service is not publicly accessible due to the local nature of Docker Desktop.
+- **Workaround**: Use kubectl port-forward to forward traffic to the local machine for testing the API REST service.
+
+**Challenge: Limited Features in Local Kubernetes**
+- **Issue**: Some Kubernetes capabilities are unavailable or restricted in Docker Desktop.
+- **Workaround**: Focus on providing a portable solution that works on full-featured Kubernetes clusters (e.g., Amazon EKS, GKE).
+
+#### Recommendations
+1.	**Production Setup:**
+Deploy to a production Kubernetes cluster like Amazon EKS or Google Kubernetes Engine (GKE) for full AWS Secrets Manager integration.
+
+2.	**Use Kubernetes Secrets for Development:**
+In local environments, use Kubernetes secrets instead of AWS Secrets Manager to simplify development and testing.
+
+3.	**Future Enhancements:**
+Explore tools like external-secrets for better integration between Kubernetes and AWS Secrets Manager when using production-grade clusters.
