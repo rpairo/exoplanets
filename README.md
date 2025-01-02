@@ -1,4 +1,7 @@
 # Exoplanets Analyzer
+
+![Backdrop](https://github.com/user-attachments/assets/34336370-4c80-4398-9b09-77c6792d0608)
+
 This is the library Exoplanets Analyzer, used to consume the provided exoplanets dataset, analyze, process and serve it. You can find the public repository of this project in https://github.com/rpairo/exoplanets.
 - **Library executable:** You can import this project into another swift compatible project using SPM (Swift Package Management) by this coordinates: *.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")*. Once imported like any other third party library, you should set up the dependency exposition in your project by *.product(name: "ExoplanetsAPI", package: "exoplanets")*, and you will be already ready to use it.
 - **Terminal executable:** You can also execute the project as consumible. Just clone this repository, and run it by the ExoplanetTerminal target, and you will see the result in your terminal. If you prefer, you can also pull the docker for this executable, and use it as easy as you want. You can find the image in dockerhub: https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal and pull it into your local docker by *rpairo/exoplanets-terminal*. I have prepared few scripts that will help you to set up the docker or kubernetes easier, since this projects requires a couple of environmental variables.
