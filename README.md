@@ -87,66 +87,60 @@ In the Kaggle documentation for version 2.0, within the “Details” section, t
 Within this repository, the file [FIELDS.md](https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md) provides a detailed description of the dataset fields. This file contains the complete field description list for reference.
 
 ### Fields Description
-```
-1.	name: Primary identifier of the planet
-2.	binaryflag: Binary flag
-    0 = No known stellar binary companion
-	1 = P-type binary (circumbinary)
-	2 = S-type binary
-	3 = Orphan planet (no star)
-3.	mass: Planetary mass [Jupiter masses]
-4.	radius: Radius [Jupiter radii]
-5.	period: Orbital period [days]
-6.	semimajoraxis: Semi-major axis [Astronomical Units]
-7.	eccentricity: Orbital eccentricity
-8.	periastron: Periastron [degree]
-9.	longitude: Longitude [degree]
-10.	ascendingnode: Ascending node [degree]
-11.	inclination: Inclination [degree]
-12.	temperature: Surface or equilibrium temperature [K]
-13.	age: Age [Gyr]
-14.	discoverymethod: Discovery method
-15.	discoveryyear: Discovery year [yyyy]
-16.	lastupdate: Last updated [yy/mm/dd]
-17.	system_rightascension: Right ascension [hh mm ss]
-18.	system_declination: Declination [+/-dd mm ss]
-19.	system_distance: Distance from Sun [parsec]
-20.	hoststar_mass: Host star mass [Solar masses]
-21.	hoststar_radius: Host star radius [Solar radii]
-22.	hoststar_metallicity: Host star metallicity [log relative to solar]
-23.	hoststar_temperature: Host star temperature [K]
-24.	hoststar_age: Host star age [Gyr]
-25.	list: Lists the planet is on
-```
+1. `name` Primary identifier of planet
+2. `binaryflag` Binary flag [0=no known stellar binary companion; 1=P-type binary (circumbinary); 2=S-type binary; 3=orphan planet (no star)]
+3. `mass` Planetary mass [Jupiter masses]
+4. `radius` Radius [Jupiter radii]
+5. `period` Period [days]
+6. `semimajoraxis` Semi-major axis [Astronomical Units]
+7. `eccentricity` Eccentricity
+8. `periastron` Periastron [degree]
+9. `longitude` Longitude [degree]
+10. `ascendingnode` Ascending node [degree]
+11. `inclination` Inclination [degree]
+12. `temperature` Surface or equilibrium temperature [K]
+13. `age` Age [Gyr]
+14. `discoverymethod` Discovery method
+15. `discoveryyear` Discovery year [yyyy]
+16. `lastupdate` Last updated [yy/mm/dd]
+17. `system_rightascension` Right ascension [hh mm ss]
+18. `system_declination` Declination [+/-dd mm ss]
+19. `system_distance` Distance from Sun [parsec]
+20. `hoststar_mass` Host star mass [Solar masses]
+21. `hoststar_radius` Host star radius [Solar radii]
+22. `hoststar_metallicity` Host star metallicity [log relative to solar]
+23. `hoststar_temperature` Host star temperature [K]
+24. `hoststar_age` Host star age [Gyr]
+25. `list` A list of lists the planet is on
 
 #### JSON Structure
 The provided JSON structure, as received in the assessment, maps to these fields as follows:
-```
+```json
 {
-    "PlanetIdentifier": "HD 45184 b",                   // Maps to `name`
-    "TypeFlag": 0,                                      // Maps to `binaryflag`
-    "PlanetaryMassJpt": 0.04,                           // Maps to `mass`
-    "RadiusJpt": "",                                    // Maps to `radius`
-    "PeriodDays": 5.8872,                               // Maps to `period`
-    "SemiMajorAxisAU": 0.0638,                          // Maps to `semimajoraxis`
-    "Eccentricity": 0.3,                                // Maps to `eccentricity`
-    "PeriastronDeg": "",                                // Maps to `periastron`
-    "LongitudeDeg": "",                                 // Maps to `longitude`
-    "AscendingNodeDeg": "",                             // Maps to `ascendingnode`
-    "InclinationDeg": "",                               // Maps to `inclination`
-    "SurfaceTempK": 1045.8,                             // Maps to `temperature`
-    "AgeGyr": "",                                       // Maps to `age`
-    "DiscoveryMethod": "RV",                            // Maps to `discoverymethod`
-    "DiscoveryYear": 2011,                              // Maps to `discoveryyear`
-    "LastUpdated": "11/09/12",                          // Maps to `lastupdate`
-    "RightAscension": "06 24 44",                       // Maps to `system_rightascension`
-    "Declination": "-28 46 48",                         // Maps to `system_declination`
-    "DistFromSunParsec": 21.9,                          // Maps to `system_distance`
-    "HostStarMassSlrMass": "",                          // Maps to `hoststar_mass`
-    "HostStarRadiusSlrRad": "",                         // Maps to `hoststar_radius`
-    "HostStarMetallicity": "",                          // Maps to `hoststar_metallicity`
-    "HostStarTempK": 5940,                              // Maps to `hoststar_temperature`
-    "HostStarAgeGyr": ""                                // Maps to `hoststar_age`
+    "PlanetIdentifier": "HD 45184 b",
+    "TypeFlag": 0,
+    "PlanetaryMassJpt": 0.04,
+    "RadiusJpt": "",
+    "PeriodDays": 5.8872,
+    "SemiMajorAxisAU": 0.0638,
+    "Eccentricity": 0.3,
+    "PeriastronDeg": "",
+    "LongitudeDeg": "",
+    "AscendingNodeDeg": "",
+    "InclinationDeg": "",
+    "SurfaceTempK": 1045.8,
+    "AgeGyr": "",
+    "DiscoveryMethod": "RV",
+    "DiscoveryYear": 2011,
+    "LastUpdated": "11/09/12",
+    "RightAscension": "06 24 44",
+    "Declination": "-28 46 48",
+    "DistFromSunParsec": 21.9,
+    "HostStarMassSlrMass": "",
+    "HostStarRadiusSlrRad": "",
+    "HostStarMetallicity": "",
+    "HostStarTempK": 5940,
+    "HostStarAgeGyr": ""
 }
 ```
 
@@ -375,7 +369,7 @@ enum SizeCategory {
 #### Example Output
 The output of the timeline generation using SizeCategory is a dictionary where each year contains counts for each category, mapped to the SizeCategory enum:
 
-```json
+```
 [
     2010: [.small: 12, .medium: 35, .large: 5],
     2011: [.small: 18, .medium: 40, .large: 7],
@@ -576,11 +570,12 @@ This setup integrates seamlessly with **GitHub Actions** for CI/CD workflows by 
 #### AWS Secrets Configuration
 1.	**Region Selection**:
 The AWS Secrets Manager is deployed in the `us-west-2` region (closest to Arizona) to minimize latency.
+
 2.	**Secrets Created**:
- - exoplanets-analyzer-api-url-prod: For production environment URLs and configurations.
- - exoplanets-analyzer-api-url-dev: For development environment URLs and configurations.
- - exoplanets-analyzer-api-url-test: For testing environment URLs and configurations.
- - docker-credentials: For building and pushing Docker images to Docker Hub.
+    - exoplanets-analyzer-api-url-prod: For production environment URLs and configurations.
+    - exoplanets-analyzer-api-url-dev: For development environment URLs and configurations.
+    - exoplanets-analyzer-api-url-test: For testing environment URLs and configurations.
+    - docker-credentials: For building and pushing Docker images to Docker Hub.
 
 #### Visual Overview
 #### IAM User
@@ -720,7 +715,7 @@ ENTRYPOINT ["./ExoplanetsTerminal"]
 ### Docker Hub
 The Docker images for the **Exoplanet Analyzer Terminal** are stored in the [Exoplanet Analyzer Terminal repository](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) on Docker Hub. The images can be accessed and deployed using the following coordinates:
 
-rpairo/exoplanets-terminal
+`rpairo/exoplanets-terminal`
 
 #### Purpose
 This executable targets the **ExoplanetsTerminal**, a terminal-based application that processes and displays key results from the exoplanet dataset, including:
