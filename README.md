@@ -1,7 +1,5 @@
 # Exoplanets Analyzer
 
-![Backdrop](https://github.com/user-attachments/assets/34336370-4c80-4398-9b09-77c6792d0608)
-
 This is the library Exoplanets Analyzer, used to consume the provided exoplanets dataset, analyze, process and serve it. You can find the public repository of this project in https://github.com/rpairo/exoplanets.
 - **Library executable:** You can import this project into another swift compatible project using SPM (Swift Package Management) by this coordinates: *.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")*. Once imported like any other third party library, you should set up the dependency exposition in your project by *.product(name: "ExoplanetsAPI", package: "exoplanets")*, and you will be already ready to use it.
 - **Terminal executable:** You can also execute the project as consumible. Just clone this repository, and run it by the ExoplanetTerminal target, and you will see the result in your terminal. If you prefer, you can also pull the docker for this executable, and use it as easy as you want. You can find the image in dockerhub: https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal and pull it into your local docker by *rpairo/exoplanets-terminal*. I have prepared few scripts that will help you to set up the docker or kubernetes easier, since this projects requires a couple of environmental variables.
@@ -710,7 +708,7 @@ To develop this project I have followed the clean architecture conventions. In t
 import PackageDescription
 
 let package = Package(
-    name: "ExoplanetAnalyzer",
+    name: "exoplanet-analyzer",
     platforms: [
         .macOS(.v12)
     ],
@@ -719,9 +717,9 @@ let package = Package(
             name: "ExoplanetsTerminal",
             targets: ["ExoplanetsTerminal"]
         ),
-        .executable(
-            name: "exoplanetsAPI",
-            targets: ["exoplanetsAPI"]
+        .library(
+            name: "ExoplanetsAPI",
+            targets: ["ExoplanetsAPI"]
         )
     ],
     targets: [
@@ -750,19 +748,19 @@ let package = Package(
             dependencies: ["Data", "Domain", "Presentation", "Infrastructure"],
             path: "Sources/Composition"
         ),
+        .target(
+            name: "ExoplanetsAPI",
+            dependencies: ["Composition", "Presentation", "Domain"],
+            path: "Sources/API"
+        ),
         .executableTarget(
             name: "ExoplanetsTerminal",
             dependencies: ["Composition", "Presentation"],
             path: "Sources/Main"
         ),
-        .executableTarget(
-            name: "exoplanetsAPI",
-            dependencies: ["Composition", "Presentation", "Domain"],
-            path: "Sources/API"
-        ),
         .testTarget(
             name: "Tests",
-            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure"],
+            dependencies: ["Data", "Domain", "Presentation", "Composition", "Infrastructure", "ExoplanetsAPI"],
             path: "Tests"
         )
     ]
@@ -838,16 +836,3 @@ public struct AppComposition: ApplicationBuilder {
     }
 }
 ```
-
-## Local Execution by Xcode (Development)
-## Kubernetes (Local)
-I have been using Kubernetes by Docker Desktop, and this has limited me the capacity to implement the AWS Secrets Manager. For that reason, if you are going to try to run by local Docker Desktop, I have prepared few scripts to set up the local secrets that stores the url's environment variables:
-
-- [deploy-k8s.sh](k8s/scripts/deploy-k8s.sh): This file will trigger the deployment flow. First will call *create-secrets-docker-desktop.sh*, then will call *exoplanets-terminal.yaml* to set up the instructions to run the image in kubernetes.
-
-- [create-secrets-docker-desktop.sh](k8s/scripts/create-secrets-docker-desktop.sh): This file will check if kubernetes is running by *Docker Desktop*. In case it does, it will create a local secret decoding the base64 urls. This is necessary cause it is not possible to connect AWS Secrets Manager to local Docker Desktop.
-
-- [exoplanets-terminal.yaml](k8s/base/exoplanets-terminal.yaml): This file contains all the required instructions to pull the image from docker hub, set up and run in kubernetes.
-
-
-
