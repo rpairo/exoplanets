@@ -3,13 +3,23 @@ This is the library Exoplanets Analyzer, used to consume the provided exoplanets
 - **Library executable:** You can import this project into another swift compatible project using SPM (Swift Package Management) by this coordinates: *.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")*. Once imported like any other third party library, you should set up the dependency exposition in your project by *.product(name: "ExoplanetsAPI", package: "exoplanets")*, and you will be already ready to use it.
 - **Terminal executable:** You can also execute the project as consumible. Just clone this repository, and run it by the ExoplanetTerminal target, and you will see the result in your terminal. If you prefer, you can also pull the docker for this executable, and use it as easy as you want. You can find the image in dockerhub: https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal and pull it into your local docker by *rpairo/exoplanets-terminal*. I have prepared few scripts that will help you to set up the docker or kubernetes easier, since this projects requires a couple of environmental variables.
 
-    #### [Docker](docker/setup-docker-resources.sh): Notice there are few scripts to manage the docker setup: one based on if you have AWS CLI installed *[setup-docker-aws-secrets.sh](docker/setup-docker-aws-secrets.sh)*, to fetch the secrets from AWS and set up the env var with them, and another to set up docker by the env var directly *[setup-docker-manual.sh](docker/setup-docker-manual.sh)*. Notice I have code up the env vars by base64 to do not expose them directly, but its only a codification, so does not cypher anything and its easy to code them back to plain text. I did that since its public url and I don't have any way to provide you the standalone scripts if not.
+    #### [Docker](docker/setup-docker-resources.sh): Notice there are few scripts to manage the docker setup: one based on if you have AWS CLI installed *[setup-docker-aws-secrets.sh](docker/setup-docker-aws-secrets.sh)*, to fetch the secrets from AWS and set up the env var with them, and another to set up docker by the env var directly *[setup-docker-manual.sh](docker/setup-docker-manual.sh)*.
+    Notice I have code up the env vars by base64 to do not expose them directly, but its only a codification, so does not cypher anything and its easy to code them back to plain text. I did that since its public url and I don't have any way to provide you the standalone scripts if not.
     ![Docker](https://github.com/user-attachments/assets/5d35feb4-ff57-4a65-8a83-1816a1e49f4c)
 
     #### [Kubernetes](k8s/scripts/deploy-k8s-resources.sh): Notice there are few scripts I done based on your installed tools. The orchestrator one is *[deploy-k8s-resources.sh](k8s/scripts/deploy-k8s-resources.sh)* but if you wants to do it easier you can execute directly *[create-k8s-secrets-manual.sh](k8s/scripts/create-k8s-secrets-manual.sh)*.
+    I am running kubernetes by *Docker Desktop feature*, this makes not possible to use AWS Secrets Manager by the kubernetes script. This is the reason why I made these scripts. In a real production environment, with kubenetes deployed in a real clusters we would be able to manage the env vars by the deployment scripts.
     ![Kubernetes](https://github.com/user-attachments/assets/03488df9-2b35-4532-a388-4664166da674)
 
-- This library that you are currenly reading it is not everything yet. I have created an API Rest that consumes this library as an external dependency, to provide you even more fun! You can find the api rest in https://github.com/rpairo/exoplanets-api. You will find the related documentation in its own README.
+    #### [Xcode](): Notice that to run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target. This is required cause Xcode does not share the OS environment variables..
+    ![Xcode](https://github.com/user-attachments/assets/9bd58723-7b14-4750-bb59-b9f372e4f67d)
+
+    #### You can set them up by *Product -> Scheme -> Edit Scheme -> \<target>*
+    ![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
+
+
+#### API Rest
+This library that you are currenly reading it is not everything yet. I have created an API Rest that consumes this library as an external dependency, to provide you even more fun! You can find the api rest in https://github.com/rpairo/exoplanets-api. This API will provide you more than the basic information by website and api json, up to you. You will find the related documentation in its own README.
 
 ## Dataset
 Based on the documentation located here: https://www.kaggle.com/datasets/mrisdal/open-exoplanet-catalogue
@@ -124,46 +134,49 @@ This mapping is important, since I can understand the fields meaning, to achieve
 I have noticed the JSON provided has a specific issue source: Some Int and Double type properties has different type depending if they are null or with value.
 Ex. `PlanetaryMassJpt` has `0.076` for `Gliese 3293 b`, but `""` for `Kepler-1037 b`.
 This circunsancy can create a serialization issue. This is cause when I create the DTO conforming the Decodable protocol, I have to setup the expected value type. And for Int and Double types, there is not direct conversion from empty string `""` into `0`, `0.0` or `nil`.
+
 To solve this casuistic, I have implemented the decodable constructor, and manually set up the conversions.
 
-I have extended the `KeyedDecodingContainer` struct, that is the responsable to hanlde the type decoding from decodable protocol, and the henadling functions will be cleaner stored in it's better responsability scope. I have created 2 functions to handle the string null casuistic for know Int and Double fields.
+I have extended the [`KeyedDecodingContainer`](Sources/Domain/Models/Exoplanet.swift) struct, that is the responsable to hanlde the type decoding from decodable protocol, and the henadling functions will be cleaner stored in it's better responsability scope. I have created 2 functions to handle the string null casuistic for know Int and Double fields.
+
 First, I try to decode from String type. In case this is `true`, I will return `nil`.
 In case it is not possible to decode from String, means its the expected value, `Int` or `Double` depending the case. Then I can decode this and return it.
 Thankfuly using the optionals for those values, I can easily handle this casuistic with standarize `null` values.
 
 ```swift
-// Helper function to handle decoding for Double
-func decodeIfPresentDouble(forKey key: K) throws -> Double? {
-    if let _ = try? decodeIfPresent(String.self, forKey: key) {
-        return nil // If it's a String, return nil
+extension KeyedDecodingContainer {
+    func decodeIfPresentDouble(forKey key: K) throws -> Double? {
+        if let _ = try? decodeIfPresent(String.self, forKey: key) {
+            return nil // If it's a String, return nil
+        }
+        return try? decodeIfPresent(Double.self, forKey: key)
     }
-    return try? decodeIfPresent(Double.self, forKey: key)
-}
 
-// Helper function to handle decoding for Int
-func decodeIfPresentInt(forKey key: K) throws -> Int? {
-    if let _ = try? decodeIfPresent(String.self, forKey: key) {
-        return nil // If it's a String, return nil
+    func decodeIfPresentInt(forKey key: K) throws -> Int? {
+        if let _ = try? decodeIfPresent(String.self, forKey: key) {
+            return nil // If it's a String, return nil
+        }
+        return try? decodeIfPresent(Int.self, forKey: key)
     }
-    return try? decodeIfPresent(Int.self, forKey: key)
 }
 ```
 
 Also, after review the dataset, I assumed the dataset constantly uses `""` to mean `no data`, and there is no case where empty string can means anything in this circunscancies. Then, to maintain coherence in the model, and don't have two different `no data` types: `""` and `nil`, that would drive me to have to check if string value is empty or not even when it has value, I have prefered to create a function to handle the empty strings received values and convert them into `nil` values. This will contribute to have a cleaner and more consistent code.
 
 ```swift
-// Helper function to handle decoding for String
-func decodeIfPresentString(forKey key: K) throws -> String? {
-    if let rawValue = try? decodeIfPresent(String.self, forKey: key) {
-        return rawValue.isEmpty ? nil : rawValue
+extension KeyedDecodingContainer {
+    func decodeIfPresentString(forKey key: K) throws -> String? {
+        if let rawValue = try? decodeIfPresent(String.self, forKey: key) {
+            return rawValue.isEmpty ? nil : rawValue
+        }
+        return nil
     }
-    return nil
 }
 ```
 
-You can check these cases in [Exoplanet](Sources/Domain/Models/Exoplanet.swift)
+You can see the mapping logic in [Exoplanet.swift](Sources/Domain/Models/Exoplanet.swift)
 
-## Goals process
+## Goals
 
 ### 1. The number of orphan planets.
 To filter the dataset and get only the orphan one, I have based the next algorithm in the documentation information. I have noticed the TypeFlag(binaryflag) in value `3` means Orphan planet.
@@ -630,14 +643,6 @@ public struct AppComposition: ApplicationBuilder {
 ```
 
 ## Local Execution by Xcode (Development)
-To run the project by Xcode it will requires to manually set up the Environment Variables by the Scheme target.
-
-This is required cause Xcode does not share the OS environment variables.
-
-Product -> Scheme -> Edit Scheme -> <target>
-
-![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
-
 ## Kubernetes (Local)
 I have been using Kubernetes by Docker Desktop, and this has limited me the capacity to implement the AWS Secrets Manager. For that reason, if you are going to try to run by local Docker Desktop, I have prepared few scripts to set up the local secrets that stores the url's environment variables:
 
