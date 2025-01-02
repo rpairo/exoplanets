@@ -687,21 +687,21 @@ public struct NetworkRetryHandler: RetryableOperation {
 ```
 
 ## Clean architecture
-This file has the project structure and targets definitions. I have set up two executables: 
+This file has the project structure and targets definitions. I have set up one executable **ExoplanetsTerminal** and one library **ExoplanetsAPI**: 
 
 **ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
 
-**exoplanetsAPI**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet consumtion results.
+**ExoplanetsTerminal**: Implements an API layer that will provide to Swift Package Manager consumers the capability to request the exoplanet data results.
 
-To develop this project I have followed the clean architecture conventions. In this case, the inned layers are agnostic to the above layers. You can notice the dependencies by the *dependencies: ["layer"]* parameter in the project configuration.
+The projects is structured by [Package.swift](Package.swift) following the clean architecture conventions and good practices. What it means that the inner layers are agnostic to the above layers. You can notice the dependencies by the **dependencies: ["layer"]** parameter in the project configuration. This limite the accesibility that every layer can has.
 
-- Domain: Does not has any dependency. It contains the core business logic. It is independent of any other layer.
-- Data: Has Domain dependency. It contains the data consumtion required for the aplication.
-- Infrastructure: Has Data dependency. It contains the connections and envinronmental configurations.
-- Presentation: Has Domain dependency. It contains the logic to prepare the results obtainted from domain, and display them.
-- Composition: Has Domain, Data, Presentation and Infrastructure dependencies. It takes care of the project building. It contains the dependency injector and the project build flow.
-- ExoplanetsTerminal: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
-- exoplanetsAPI: Has Composition, Presentation and Domain dependencies. It provides an interface to propagate the expolanets information to library consumers.
+- **Domain**: Does not has any dependency. It contains the core business logic. It is agnostic from the rest of the proyect.
+- **Data**: Has Domain dependency. It contains the data consumtion required logic for the aplication.
+- **Infrastructure**: Has Data dependency. It contains the logic and configurations to manage the project connections.
+- **Presentation**: Has Domain dependency. It contains the logic to prepare and present the results obtainted from domain.
+- **Composition**: Has Domain, Data, Presentation and Infrastructure dependencies. It takes care of the project building. It contains the dependency injector and the project build flow.
+- **ExoplanetsTerminal**: Has Composition and Presentaion dependencies. It provides a gateway to present the data by terminal.
+- **ExoplanetsAPI**: Has Composition, Presentation and Domain dependencies. It provides an interface to propagate the expolanets information to library consumers, exposing DTO's to hide the inner logic.
 
 ```swift
 // swift-tools-version:5.9
@@ -767,23 +767,32 @@ let package = Package(
 )
 ```
 
-## Composition Layer
+The comunication between these layers occurs by the inversion of dependencies, where the inner layer exposes the signature or protocol, and the upper layer manages the implementation.
 
-AppComposition definition: [File](Sources/Composition/Application/AppComposition.swift)
+## Composition Layer
+The composition layer takes care of the project building, assuring to have registered and initialized any dependency that the project can requires.
 
 ```swift
 public struct AppComposition: ApplicationBuilder {
-    private let container = DIContainer.shared
-    public init() {}
+    private let container: DependencyInjection
+
+    public init(with dependencyInjector: DependencyInjection = DIContainer.shared) {
+        self.container = dependencyInjector
+    }
 
     public func build() async throws {
-        container.reset()
+        do {
+            container.reset()
 
-        try registerConfiguration()
-        try registerNetworking()
-        try registerDataLayer()
-        try registerDomainLayer()
-        try await registerPresentationLayer()
+            try registerConfiguration()
+            try registerNetworking()
+            try registerDataLayer()
+            try registerDomainLayer()
+            try await registerPresentationLayer()
+        } catch {
+            print("Error during build: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     private func registerConfiguration() throws {
@@ -835,4 +844,56 @@ public struct AppComposition: ApplicationBuilder {
         )
     }
 }
+
+enum AppCompositionError: Error {
+    case invalidConfigurationURL(String)
+}
 ```
+
+## API Exposition
+The **ExoplanetsAPI** target exposes the **ExoplanetAnalyzerAPIProtocol** interface to the library clients, this provides them the ways to request the information for *Orphan Exoplanets*, the *Hottest Star Exoplanet*, and the *Exoplanet Discovery Timeline*.
+
+```swift
+public protocol ExoplanetAnalyzerAPIProtocol {
+    func getOrphanPlanets() -> [ExoplanetDTO]?
+    func getHottestStarExoplanet() -> ExoplanetDTO?
+    func getDiscoveryTimeline() -> YearlyPlanetSizeDistributionDTO?
+}
+
+public struct ExoplanetAnalyzerAPI: ExoplanetAnalyzerAPIProtocol {
+    private let presenter: ExoplanetPresenting
+
+    public init(presenter: ExoplanetPresenting) {
+        self.presenter = presenter
+    }
+
+    public func getOrphanPlanets() -> [ExoplanetDTO]? {
+        guard let planets = presenter.orphanPlanets() else { return nil }
+        return planets.map { ExoplanetMapper.toDTO(from: $0) }
+    }
+
+    public func getHottestStarExoplanet() -> ExoplanetDTO? {
+        guard let exoplanet = presenter.hottestStarExoplanet() else { return nil }
+        return ExoplanetMapper.toDTO(from: exoplanet)
+    }
+
+    public func getDiscoveryTimeline() -> YearlyPlanetSizeDistributionDTO? {
+        guard let timeline = presenter.timeline() else { return nil }
+        return timeline.reduce(into: [:]) { result, planetSizeCount in
+            result[planetSizeCount.key] = PlanetSizeCountDTO.from(domain: planetSizeCount.value)
+        }
+    }
+}
+
+public extension ExoplanetAnalyzerAPI {
+    static func makeDefault() async throws -> ExoplanetAnalyzerAPI {
+        let appComposition: ApplicationBuilder = AppComposition()
+        try await appComposition.build()
+        let presenter: ExoplanetPresenting = try DIContainer.shared.resolve()
+        return ExoplanetAnalyzerAPI(presenter: presenter)
+    }
+}
+```
+
+## Kubernetes
+I have approached several ways to implement the AWS Secrets Manager by Kubernets, facing blockers at the end of all of them. This seems to be happening cause Docker Desktop, wich feature I am using to run Kubernetes, its not compatible with many flows and capabilities due the encapsulation and not public exposition. Even furthemore, I have to port-forward kubernetes to be able to access in the API Rest service. Since this, I have prefered to provide the scripts and deploy file to make you able to deploy and test it.
