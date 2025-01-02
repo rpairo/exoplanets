@@ -176,18 +176,14 @@ extension KeyedDecodingContainer {
 
 You can see the mapping logic in [Exoplanet.swift](Sources/Domain/Models/Exoplanet.swift)
 
-## Goals
+## Key Goals
 
 ### 1. The number of orphan planets.
-To filter the dataset and get only the orphan one, I have based the next algorithm in the documentation information. I have noticed the TypeFlag(binaryflag) in value `3` means Orphan planet.
+To filter the dataset and get only the orphan one, I have based the next algorithm in the documentation information. I have noticed the **TypeFlag(binaryflag) in value `3` means Orphan planet**.
 
 In this case, I have looped once across the dataset, and checked if the exoplanet has the TypeFlag property value equals to 3.
 
 I have added the exoplanet into collection structure to be returned, just in case we want to do anything else more than only show up the collectioun items count.
-
-In the execution, we have find out there are 2 exoplanets those are orphan:
-- PSO J318.5-22
-- CFBDSIR2149
 
 ```swift
 private func isOrphan(exoplanet: Exoplanet) -> Bool {
@@ -196,7 +192,12 @@ private func isOrphan(exoplanet: Exoplanet) -> Bool {
 }
 ```
 
+In the execution, we will see 2 orphan exoplanets:
+- PSO J318.5-22
+- CFBDSIR2149
+
 ### 2. Find the planet orbiting the hottest star.
+To find the hottest start exoplanet, I have followed the next approach: In the exoplanets dataset loop, by every loop, I check if the current exoplanet host star temperature is higher than the stored one. In case it is, I will replace the stored exoplanet by the current one. If not, will continue to the next loop. Bt the end of the loop, we will have the hottest one.
 
 ```swift
 private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exoplanet) -> Exoplanet? {
@@ -206,8 +207,21 @@ private func determineHottestStar(currentHottest: Exoplanet?, newExoplanet: Exop
 }
 ```
 
-### 3. Generate a timeline of planet discoveries grouped by size categories.
+In the execution, we will see the exoplanet orbiting the hottest star:
+- Planet: V391 Peg b
+- Temperature: 29300K
 
+### 3. Generate a timeline of planet discoveries grouped by size categories.
+In order to create the discovery timeline, I categoryze every planet that has jupider radius magnitude and dicovery year. I am filtering by these two must cause is the required data to be able to create a timeline of discovered exoplanets categorized by size.
+
+I use a dictionary (key/value) where for every key (year when any exoplanet has been discovered) has an counter structure with the exoplanets discovered in that year by size category (small, medium, large).
+
+```swift
+if let record = createTimelineRecord(for: exoplanet) {
+    let currentCount = timeline[record.year] ?? .zero
+    timeline[record.year] = currentCount.adding(record.sizes)
+}
+```
 ```swift
 private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes: PlanetSizeCount)? {
     guard let year = exoplanet.discoveryYear, let radius = exoplanet.radiusJpt, radius >= 0 else { return nil }
@@ -216,6 +230,7 @@ private func createTimelineRecord(for exoplanet: Exoplanet) -> (year: Int, sizes
 }
 ```
 
+I use [SizeCategory](Sources/Domain/Models/SizeCategory.swift) to encapsulate the exoplanets categorization responsability.
 ```swift
 enum SizeCategory {
     case small
@@ -247,10 +262,61 @@ enum SizeCategory {
         }
     }
 }
-
 ```
 
-# Methodology
+I use [PlanetSizeCount](Sources/Domain/Models/PlanetSizeCount.swift) to encapsulate yearly discovery timeline tracking responsability.
+```swift
+public struct PlanetSizeCount: Equatable {
+    public let small: Int
+    public let medium: Int
+    public let large: Int
+
+    public static var zero: PlanetSizeCount {
+        .init(small: 0, medium: 0, large: 0)
+    }
+
+    public func adding(_ other: PlanetSizeCount) -> PlanetSizeCount {
+        .init(
+            small: self.small + other.small,
+            medium: self.medium + other.medium,
+            large: self.large + other.large
+        )
+    }
+
+    public static func == (lhs: PlanetSizeCount, rhs: PlanetSizeCount) -> Bool {
+        lhs.small == rhs.small &&
+        lhs.medium == rhs.medium &&
+        lhs.large == rhs.large
+    }
+}
+```
+
+In the execution, we will see the exoplanets discovery timeline by size. I have [formated](Sources/Presentation/Formatter/TimelineFormatter.swift) the output to make it easier to read:
+```
+Year   Small  Medium  Large
+---------------------------
+1781   1      0       0    
+1846   1      0       0    
+1930   1      0       0    
+1999   0      1       0    
+2001   1      0       0    
+2002   0      1       0    
+2004   2      5       0    
+2005   1      3       0    
+2006   1      6       0    
+2007   4      16      0    
+2008   1      21      1    
+2009   4      6       0    
+2010   15     39      0    
+2011   32     48      1    
+2012   52     21      0    
+2013   58     30      2    
+2014   830    30      0    
+2015   104    30      0    
+2016   1267   26      0
+```   
+
+## Methodology
 
 ## Initial Approach
 Initially, the process involved iterating over the dataset separately for each goal:
