@@ -507,6 +507,12 @@ jobs:
           docker push rpairo/exoplanets-terminal:latest
 ```
 
+#### Test job performance
+![GitHub Actions](https://github.com/user-attachments/assets/4d8fbb6d-a2ec-4ffd-ba70-d41a487dfc1d)
+
+#### CI/CD Jobs Chain
+![GitHub Actions Chain](https://github.com/user-attachments/assets/be8183b7-3cd6-40bd-b1be-fc1c44976538)
+
 ### Dockerfile
 This [Dockerfile](Dockerfile) file contains the instructions to build the a Docker Image based on my code and requirements.
 
@@ -555,6 +561,8 @@ After building the executable, Docker creates a second image using swift:6.0.3-s
 
 ### Docker Hub
 The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) by the **rpairo/exoplanets-terminal** coordenates, for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+
+![DockerHub](https://github.com/user-attachments/assets/03708b55-78c1-4f6e-9616-09d46696e910)
 
 ### API URL Abstraction
 Following the good practices, the sensible information is abstracted from the code. It is injected by env vars. The **Infrastructure layer** will retrieve and check them by the [ConfigurationFactory](Sources/Infrastructure/Environment/ConfigurationFactory.swift).
