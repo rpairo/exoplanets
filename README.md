@@ -1,5 +1,10 @@
-# Exoplanets
+# Exoplanets Analyzer
+- This is the library Exoplanets Analyzer, used to consume the provided exoplanets dataset, analyze, process and serve it. You can find the public repository of this project in https://github.com/rpairo/exoplanets.
+    - **Library executable:** You can import this project into another swift compatible project using SPM (Swift Package Management) by this coordinates: *.package(url: "https://github.com/rpairo/exoplanets.git", from: "1.0.12")*. Once imported like any other third party library, you should set up the dependency exposition in your project by *.product(name: "ExoplanetsAPI", package: "exoplanets")*, and you will be already ready to use it.
+    - **Terminal executable:** You can also execute the project as consumible. Just clone this repository, and run it by the ExoplanetTerminal target, and you will see the result in your terminal. If you prefer, you can also pull the docker for this executable, and use it as easy as you want. You can find the image in dockerhub: https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal and pull it into your local docker by *rpairo/exoplanets-terminal*.
+- This library that you are currenly reading it is not everything yet. I have created an API Rest that consumes this library as an external dependency, to provide you even more fun! You can find the api rest in https://github.com/rpairo/exoplanets-api. You will find the related documentation in its own README.
 
+## Dataset
 Based on the documentation located here: https://www.kaggle.com/datasets/mrisdal/open-exoplanet-catalogue
 There are two dataset versions.
 
@@ -8,12 +13,11 @@ I have realised the provided JSON for this assesment: https://gist.githubusercon
 The dataset version 1 has 3426 exoplanets, while the version 2 has 3584.
 I have checked, and effectively, by the provided json url, we are receiving 3426 exoplanets. I can confirm it by 2 checks: Same name of records provided, and same number of orphan planets based on TypeFlag: 2. The version 2 has three orphan planets.
 
-In the Kaggle documentation, in the dataset version 2, in detail section we can find referenced the oec tables repository: https://github.com/OpenExoplanetCatalogue/oec_tables/.
+In the Kaggle documentation, in the dataset version 2, in detail section we can find referenced the oec tables repository: https://github.com/OpenExoplanetCatalogue/oec_tables.
 In this repository, we can find the file FIELDS.md: https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md
 Where I can find the next field description list:
 
-Fields description
-==================
+### Fields description
 1. `name` Primary identifier of planet
 2. `binaryflag` Binary flag [0=no known stellar binary companion; 1=P-type binary (circumbinary); 2=S-type binary; 3=orphan planet (no star)]
 3. `mass` Planetary mass [Jupiter masses]
@@ -42,8 +46,7 @@ Fields description
 
 I have noticed these fields have been mapped to the received JSON that we had been provided by the assesment. The json structure is the next one:
 
-JSON Structure
-==============
+### JSON Structure
 ```json
 {
     "PlanetIdentifier": "HD 45184 b",
@@ -78,7 +81,7 @@ The JSON fields are based un PascalCase format, with different names mapped from
 This is the mapping table I have assumed to work on this assesment.
 This mapping is important, since I can understand the fields meaning, to achieve the proposed goals.
 
-## Dataset - JSON field mapping
+### Dataset - JSON field mapping
 | **JSON Key**             | **Dataset Field Name**       | **Description**                                                                                  |
 |--------------------------|-----------------------------|--------------------------------------------------------------------------------------------------|
 | `PlanetIdentifier`       | `name`                     | Primary identifier of the planet.                                                               |
