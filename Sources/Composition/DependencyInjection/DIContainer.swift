@@ -7,7 +7,7 @@ public protocol DependencyInjection {
     func reset()
 }
 
-public class DIContainer: DependencyInjection{
+public class DIContainer: DependencyInjection {
     public static var shared: DependencyInjection = DIContainer()
     private var services: [String: Any] = [:]
     private init() {}

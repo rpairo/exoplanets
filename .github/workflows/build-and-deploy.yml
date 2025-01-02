@@ -21,7 +21,6 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
 
-  # 2) Build, Scan, and Push - waits for tests
   build-scan-and-push:
     name: Build, Scan, and Push Docker Image
     runs-on: ubuntu-latest

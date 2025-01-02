@@ -294,7 +294,7 @@ public struct PlanetSizeCount: Equatable {
 ```
 
 In the execution, we will see the exoplanets discovery timeline by size. I have [formated](Sources/Presentation/Formatter/TimelineFormatter.swift) the output to make it easier to read:
-```
+```yaml
 Year   Small  Medium  Large
 ---------------------------
 1781   1      0       0    
@@ -384,7 +384,7 @@ Then I just have to store the **IAM credentials** in my **GitHub Repository Secr
 
 For more security, I have created a custom **IAM policy** that only has read access only to both Secrets. I have also create an IAM specific user only for github actions, that implements the custom policy to have only the indispensable resources access.
 
-```
+```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -415,28 +415,100 @@ I have configured the AWS Secrets Manager to be deployed in us-west-2 region sin
 ![AWS Secrets](https://github.com/user-attachments/assets/25c485a4-bea3-4e6f-a7ac-2fa5aa4a49d9)
 
 ### GitHub Actions (CI/CD Flow)
-Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes.
+The quality flow I have been working with is: Code -> Git -> GitHub Pull Request -> GitHub Actions -> Docker Hub -> Kubernetes.
 
-In GitHub the main branch is protected and restricted to add code only by Pull Requests.
+In GitHub the main branch should be protected and restricted to **add code only by Pull Requests as a good practice**. Since I have been coding only by myself, I have turned this option off to do not require PR every time.
 
-This [Pull Request Validation](.github/workflows/validate-pr.yml):
-- **`validate-pr`:**  
-  This job is triggered for every pull request. It performs the following tasks:
-  - Checks for conflicts within the pull request.
-  - Retrieves URLs and other secrets from AWS Secrets Manager.
-  - Sets the retrieved secrets as environment variables.
-  - Runs the tests to validate the pull request changes.
+- **[validate-pr.yml](.github/workflows/validate-pr.yml):** This job is triggered for every pull request made. It triggers the testing job.
 
-This [Build and Deploy](.github/workflows/build-and-deploy.yml):
-- **`build-scan-and-push`:**  
-  This job it is triggered when changes are merged into the main branch:
-  - Retrieves Docker credentials from AWS Secrets Manager.
-  - Builds a new Docker image using the main branch code.
-  - Scans the Docker image with Docker Scout to identify vulnerabilities.
-  - Pushes the image to Docker Hub only if no critical or high-severity vulnerabilities are found during the scan.
+- **[build-and-deploy.yml](.github/workflows/build-and-deploy.yml):**
+  This job is triggered when any change has been done into **main branch**.
+  - Triggers the test job, as a good practice to skip publish a broke code in dockerhub.
+  - Retrieves the AWS secrets to get the Docker credentials.
+  - Build the docker image
+  - Perform vulnerability scan by docker scout. It will stop the process if finds any critical or high vulnerability.
+  - Push the image to DockerHub.
+
+- **[test-swift.yml](.github/workflows/test-swift.yml):** This is a reutilizable job to perform the swift testing. It is called by previous both jobs.
+  - Retrieves the AWS Secrets and set up the required env vars for testing.
+  - Perform the testing.
+  - Creates the testing artifacts.
+
+Notice the jobs are set up to cancell by fifo strategy the current jobs if a new job has been triggered. This is a good approach for me working alone to save resources and time. But maybe it's not as helpfully in a collaborative team with several PR's at same time.
+
+```yaml
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-and-deploy
+  cancel-in-progress: true
+
+jobs:
+  test-code:
+    uses: ./.github/workflows/test-swift.yml
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+  build-scan-and-push:
+    name: Build, Scan, and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test-code
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      
+      - name: Retrieve AWS Secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          docker_secrets=$(aws secretsmanager get-secret-value \
+            --secret-id docker-credentials \
+            --query SecretString \
+            --output text)
+    
+          echo "USERNAME=$(echo "$docker_secrets" | jq -r .USERNAME)" >> $GITHUB_ENV
+          echo "PASSWORD=$(echo "$docker_secrets" | jq -r .PASSWORD)" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.USERNAME }}
+          password: ${{ env.PASSWORD }}
+    
+      - name: Build Docker Image for ExoplanetsTerminal
+        run: |
+          docker build -t rpairo/exoplanets-terminal:latest .
+      
+      - name: Scan Docker Image for ExoplanetsTerminal
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: rpairo/exoplanets-terminal:latest
+          only-severities: critical,high
+          exit-code: true
+      
+      - name: Push Docker Image for ExoplanetsTerminal
+        if: success()
+        run: |
+          docker push rpairo/exoplanets-terminal:latest
+```
 
 ### Dockerfile
-This [Dockerfile](Dockerfile) file contains the instructions to build up a Docker Image based on my code.
+This [Dockerfile](Dockerfile) file contains the instructions to build the a Docker Image based on my code and requirements.
 
 In this case, I could use the command:
 ```dockerfile
@@ -450,20 +522,42 @@ COPY . .
 ```
 This approach ensures that the exact version of the code tested during the CI/CD process is included in the image, without exposing any repository URL.
 
+```dockerfile
+# ---------- STAGE 1: BUILD ----------
+FROM swift:6.0.3 AS build
+
+WORKDIR /build
+
+COPY . .
+
+RUN swift build --configuration release
+
+# ---------- STAGE 2: RUNTIME ----------
+FROM swift:6.0.3-slim AS terminal
+
+LABEL maintainer="Raul Pera raul_pairo@icloud.com"
+LABEL description="ExoplanetsTerminal Swift application"
+
+WORKDIR /app
+
+RUN useradd --create-home --uid 1001 --shell /bin/bash swiftuser
+USER swiftuser
+
+COPY --from=build /build/.build/release/ExoplanetsTerminal /app/ExoplanetsTerminal
+
+ENTRYPOINT ["./ExoplanetsTerminal"]
+
+```
+
 In the Dockerfile, I chose to use swift:6.0.3 as the base image to ensure that all the required dependencies for building my Swift Package Manager project are available.
 
 After building the executable, Docker creates a second image using swift:6.0.3-slim as the base image, which contains only the minimal dependencies required to run the executable. This approach ensures that the final image is smaller, as it includes only the built executable and the essential runtime environment.
 
-It created two docker images: terminal and api. These ones are the image build from the two exposed targets in the [SPM Package](Package.swift).
-
 ### Docker Hub
-The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
-
-The API built images are stored in [Exoplanet Analyer API](https://hub.docker.com/repository/docker/rpairo/exoplanets-api) for easy access. This is an executable that targets the exoplanetsAPI, exposes the API layer to provide public functions to retrieve the three expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
+The Terminal built images are stored in [Exoplanet Analyzer Terminal](https://hub.docker.com/repository/docker/rpairo/exoplanets-terminal) by the **rpairo/exoplanets-terminal** coordenates, for easy access and deployment. This is an executable that targets the ExoplanetsTerminal, use a terminal view layer to present the exoplanet list process, with the expected results: *Orphan exoplanets*, *Hottest star exoplanet*, and *Discovery exoplanets timeline by sizes*.
 
 ### API URL Abstraction
-
-Configuration Factory definition: [File](Sources/Infrastructure/Environment/ConfigurationFactory.swift)
+Following the good practices, the sensible information is abstracted from the code. It is injected by env vars. The **Infrastructure layer** will retrieve and check them by the [ConfigurationFactory](Sources/Infrastructure/Environment/ConfigurationFactory.swift).
 
 ```swift
 public struct ConfigurationFactory {
@@ -493,17 +587,25 @@ public struct ConfigurationFactory {
         )
     }
 }
+
+public enum ConfigurationError: Error, LocalizedError {
+    case missingEnvironmentVariable(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .missingEnvironmentVariable(let variable):
+            return "Missing environment variable: \(variable)"
+        }
+    }
+}
 ```
 
 ### Dependency Injection
-
-To implement proper scalable, maintainable and disacopled architecture, I have worked with dependency inversion approach. This is really powerful when it has a dependency injector to abstract the instances creation.
-
-Dependency Injector definition: [File](Sources/Composition/DependencyInjection/DIContainer.swift)
+To implement proper scalability, maintanability and building disacoplishment, I have worked with the inverse dependency approach. This is really powerful and versatile when it has a [dependency injector](Sources/Composition/DependencyInjection/DIContainer.swift) to abstract the instances creation responsability. Improving readability, code clearity and testability.
 
 ```swift
-public final class DIContainer {
-    public static let shared = DIContainer()
+public class DIContainer: DependencyInjection {
+    public static var shared: DependencyInjection = DIContainer()
     private var services: [String: Any] = [:]
     private init() {}
 
@@ -527,29 +629,32 @@ public final class DIContainer {
         services.removeAll()
     }
 }
+
+enum DIContainerError: Error {
+    case dependencyAlreadyRegistered(dependency: String)
+    case dependencyNotFound(dependency: String)
+}
 ```
 
-The work flow is simple: first you register the implementation for determinate type:
+The work flow is simple: first you **register the implementation for determinate type**:
 ```swift
 try container.register(URLSessionHTTPClient(), for: HTTPClient.self)
 ```
 
-To later resolve the dependency:
+To later **resolve the dependency** serving the implementation based on a certain type:
 ```swift
 try container.register(RemoteExoplanetDataSource(client: container.resolve(), url: url), for: ExoplanetDataSource.self)
 ```
 
 The pair implementation and type are stored into key value dictionary at registration time. And by generic type inference, the resolving will get the implementation (value) from the linked type (key), and return it.
 
-Dependency Injection example of usage: [File](Sources/Composition/Application/AppComposition.swift)
-
 
 ## Network Retry Handler
+In case the request gets any issue, I have implemented a system that will assure to retry the request by certain times. This improves the user experience by not letting lost the flow in case something goes wrong at the first attempt.
 
-Network Retry Handler definition: [File](Sources/Infrastructure/Network/NetworkRetryHandler.swift)
 ```swift
-public struct NetworkRetryHandler: RetryableOperation {
-    private let configuration: RetryConfiguration
+public struct NetworkRetryHandler: RetryableOperation {    
+    public var configuration: RetryConfiguration
 
     public init(configuration: RetryConfiguration) {
         self.configuration = configuration
@@ -573,9 +678,6 @@ public struct NetworkRetryHandler: RetryableOperation {
 ```
 
 ## Clean architecture
-
-Package definition: [File](Package.swift)
-
 This file has the project structure and targets definitions. I have set up two executables: 
 
 **ExoplanetsTerminal**: Implements Terminal view, that will show up by terminal the exoplanets API fetch, process and formated result.
