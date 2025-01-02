@@ -69,6 +69,15 @@ You can find the REST API repository at https://github.com/rpairo/exoplanets-api
 
 This API offers more than just basic information through a website and JSON responses — the choice is yours! Comprehensive documentation is available in the README file of the API repository.
 
+### Testing
+#### Running the tests
+The tests files are located in the `Tests/` directory in the project root. They are mirroning the `Sources/` structure to make easier the management.
+In order to make easier to run the testing, I have created the file [setup-tests-manual.sh](setup-tests-manual.sh), wich will set up the env variables and run the tests by terminal.
+Another option is to open the project by Xcode, and run the test by pressing `"CMD + U"`
+
+![Manual testing](https://github.com/user-attachments/assets/8aac0512-03cd-4e7c-b3ee-c0372676dce1)
+
+
 ### Dataset
 Based on the documentation found [here](https://www.kaggle.com/datasets/mrisdal/open-exoplanet-catalogue), there are two versions of the dataset.
 
