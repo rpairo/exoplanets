@@ -87,7 +87,7 @@ In the Kaggle documentation for version 2.0, within the “Details” section, t
 Within this repository, the file [FIELDS.md](https://github.com/OpenExoplanetCatalogue/oec_tables/blob/master/FIELDS.md) provides a detailed description of the dataset fields. This file contains the complete field description list for reference.
 
 ### Fields Description
-```yaml
+```
 1.	name: Primary identifier of the planet
 2.	binaryflag: Binary flag
     0 = No known stellar binary companion
@@ -121,7 +121,7 @@ Within this repository, the file [FIELDS.md](https://github.com/OpenExoplanetCat
 
 #### JSON Structure
 The provided JSON structure, as received in the assessment, maps to these fields as follows:
-```json
+```
 {
     "PlanetIdentifier": "HD 45184 b",                   // Maps to `name`
     "TypeFlag": 0,                                      // Maps to `binaryflag`
