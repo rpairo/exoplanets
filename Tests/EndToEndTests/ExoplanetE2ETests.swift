@@ -3,13 +3,11 @@ import XCTest
 
 final class ExoplanetE2ETests: XCTestCase {
     func test_endToEnd_withRealData_shouldProduceExpectedResults() async throws {
-        // Fetch Data
         let api = try await ExoplanetAnalyzerAPI.makeDefault()
         let orphanPlanets = api.getOrphanPlanets()
         let hottestStar = api.getHottestStarExoplanet()
         let discoveryTimeline = api.getDiscoveryTimeline()
 
-        // Assertions
         XCTAssertEqual(orphanPlanets?.count, 2, "There should be 2 orphan planets")
         XCTAssertEqual(orphanPlanets?.map { $0.planetIdentifier }, ["PSO J318.5-22", "CFBDSIR2149"], "Orphan planets should match expected")
 

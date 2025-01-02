@@ -3,20 +3,6 @@ import XCTest
 @testable import Domain
 
 final class RemoteExoplanetDataSourceTests: XCTestCase {
-    // MARK: - Mock HTTPClient
-    final class MockHTTPClient: HTTPClient {
-        var mockedData: Data?
-        var shouldThrowError = false
-
-        func get(from url: URL) async throws -> Data {
-            if shouldThrowError {
-                throw NSError(domain: "Test", code: 1, userInfo: nil)
-            }
-            return mockedData ?? Data()
-        }
-    }
-
-    // MARK: - Tests
     func test_fetch_withValidResponse_shouldReturnExoplanets() async throws {
         let mockClient = MockHTTPClient()
         let jsonData = "[{\"PlanetIdentifier\": \"PlanetA\", \"TypeFlag\": 1, \"PlanetaryMassJpt\": 1.0, \"RadiusJpt\": 1.1, \"DiscoveryYear\": 2022}, {\"PlanetIdentifier\": \"PlanetB\", \"TypeFlag\": 2, \"PlanetaryMassJpt\": 0.5, \"RadiusJpt\": 0.6, \"DiscoveryYear\": 2021}]".data(using: .utf8)!

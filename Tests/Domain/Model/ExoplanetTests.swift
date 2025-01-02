@@ -10,13 +10,7 @@ final class ExoplanetTests: XCTestCase {
             radiusJpt: 1.1,
             periodDays: 365.0,
             semiMajorAxisAU: 1.0,
-            eccentricity: nil,
-            periastronDeg: nil,
-            longitudeDeg: nil,
-            ascendingNodeDeg: nil,
             inclinationDeg: 0.0,
-            surfaceTempK: nil,
-            ageGyr: nil,
             discoveryMethod: "Transit",
             discoveryYear: 2022,
             lastUpdated: "2025-01-01",
@@ -26,8 +20,7 @@ final class ExoplanetTests: XCTestCase {
             hostStarMassSlrMass: 1.0,
             hostStarRadiusSlrRad: 1.0,
             hostStarMetallicity: 0.0,
-            hostStarTempK: 6000,
-            hostStarAgeGyr: nil
+            hostStarTempK: 6000
         )
 
         XCTAssertEqual(exoplanet.planetIdentifier, "Earth 2.0")

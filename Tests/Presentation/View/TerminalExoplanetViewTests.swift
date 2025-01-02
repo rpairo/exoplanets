@@ -3,31 +3,6 @@ import XCTest
 @testable import Domain
 
 final class TerminalExoplanetViewTests: XCTestCase {
-    // MARK: - Mock Dependencies
-    final class MockPresenter: ExoplanetPresenting {
-        var orphanPlanetsResult: [Exoplanet]? = nil
-        var hottestStarExoplanetResult: Exoplanet? = nil
-        var timelineResult: YearlyPlanetSizeDistribution? = nil
-
-        func orphanPlanets() -> [Exoplanet]? { orphanPlanetsResult }
-        func hottestStarExoplanet() -> Exoplanet? { hottestStarExoplanetResult }
-        func timeline() -> YearlyPlanetSizeDistribution? { timelineResult }
-    }
-
-    final class MockPrinter: MessagePrinter {
-        var printedMessages: [String] = []
-
-        func printMessage(_ message: String) {
-            printedMessages.append(message)
-        }
-    }
-
-    final class MockFormatter: TimelineFormatting {
-        func format(_ timeline: YearlyPlanetSizeDistribution) -> (headers: String, separator: String, rows: [String]) {
-            return ("Header", "-----", ["Row1", "Row2"])
-        }
-    }
-
     // MARK: - Tests
     func test_show_withValidData_shouldPrintAllSections() {
         let presenter = MockPresenter()

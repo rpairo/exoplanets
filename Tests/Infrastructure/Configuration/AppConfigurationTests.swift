@@ -2,7 +2,6 @@ import XCTest
 @testable import Infrastructure
 
 final class AppConfigurationTests: XCTestCase {
-    // MARK: - Tests
     func test_initialization_withValidValues_shouldSetPropertiesCorrectly() {
         let config = AppConfiguration(
             baseAPIURL: "https://api.test.com",
