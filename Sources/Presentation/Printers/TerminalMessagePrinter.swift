@@ -1,7 +1,11 @@
 public struct TerminalMessagePrinter: MessagePrinter {
-    public init() {}
+    private let output: (String) -> Void
+
+    public init(output: @escaping (String) -> Void = { print($0) }) {
+        self.output = output
+    }
 
     public func printMessage(_ message: String) {
-        print(message)
+        output(message)
     }
 }

@@ -1,4 +1,4 @@
-extension String {
+public extension String {
     func leftAligned(to width: Int) -> String {
         if count >= width {
             return self
