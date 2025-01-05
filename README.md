@@ -14,6 +14,7 @@ This API offers more than just basic information through a website and JSON resp
 #### API (JSON) (/api/orphans)
 ![orphans](https://github.com/user-attachments/assets/8b2bc416-af59-4741-9693-26a87121147c)
 
+### Exoplanet Analyzer Execution
 **Library Executable:** You can import this project into another Swift-compatible project using Swift Package Management (SPM) with the following coordinates: 
 
 ```swift
