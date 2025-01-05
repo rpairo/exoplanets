@@ -1,6 +1,19 @@
 # Exoplanets Analyzer
 This is the library **Exoplanets Analyzer**, designed to consume the provided exoplanets dataset, analyze, process, and serve it. You can find the public repository for this project at https://github.com/rpairo/exoplanets.
 
+### API Rest
+This library you are currently reading about is not the whole story! I have also created a REST API that uses this library as an external dependency to provide even more functionality and fun!
+
+You can find the REST API repository at https://github.com/rpairo/exoplanets-api.
+
+This API offers more than just basic information through a website and JSON responses — the choice is yours! Comprehensive documentation is available in the README file of the API repository.
+
+#### Website (/website/)
+![website](https://github.com/user-attachments/assets/68e81179-8401-4553-8c59-3e358f9fec6d)
+
+#### API (JSON) (/api/orphans)
+![orphans](https://github.com/user-attachments/assets/8b2bc416-af59-4741-9693-26a87121147c)
+
 **Library Executable:** You can import this project into another Swift-compatible project using Swift Package Management (SPM) with the following coordinates: 
 
 ```swift
@@ -61,13 +74,6 @@ To run the project in Xcode, you will need to manually configure the environment
 2. Manually configure the required environment variables.
 
 ![Xcode environment variables setup](https://github.com/user-attachments/assets/50cc3f57-89c6-4d29-9a41-16f2d3652d30)
-
-### API Rest
-This library you are currently reading about is not the whole story! I have also created a REST API that uses this library as an external dependency to provide even more functionality and fun!
-
-You can find the REST API repository at https://github.com/rpairo/exoplanets-api.
-
-This API offers more than just basic information through a website and JSON responses — the choice is yours! Comprehensive documentation is available in the README file of the API repository.
 
 ### Testing
 #### Running the tests
